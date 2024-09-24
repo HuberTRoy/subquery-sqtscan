@@ -45,7 +45,6 @@ export default defineConfig({
         manualChunks: {
           lodash: ['lodash', 'lodash-es'],
           antd: ['antd'],
-          '@sentry': ['@sentry/react'],
           axios: ['axios'],
           echarts: ['echarts'],
           dayjs: ['dayjs'],
