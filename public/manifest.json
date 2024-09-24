@@ -1,7 +1,7 @@
 {
-  "short_name": "SubQueryNetwork Explorer",
-  "name": "SubQueryNetwork Explorer",
-  "description": "SubQueryNetwork Explorer",
+  "short_name": "Subquery Scanner",
+  "name": "Subquery Scanner",
+  "description": "Subquery Scanner",
   "iconPath": "favicon.ico",
   "icons": [
     {

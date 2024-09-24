@@ -4,11 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --mode testnet",
-    "staging": "vite --mode staging",
-    "prod": "vite --mode prod",
-    "build:dev": "vite build --mode testnet",
-    "build:staging": "vite build --mode staging",
+    "dev": "vite --mode prod",
     "build": "vite build --mode prod",
     "tsc": "tsc --skipLibCheck",
     "prepare": "husky install",

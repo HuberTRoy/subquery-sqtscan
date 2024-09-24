@@ -28,24 +28,7 @@ const RpcError: FC<IProps> = (props) => {
         Oops! RPC Service Unavailable
       </Typography>
       <Typography type="secondary" style={{ textAlign: 'center' }}>
-        It looks like the RPC service is temporarily unavaiable
-        {tryAgain ? (
-          <>
-            <span>, please</span>
-            <br></br>
-            <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => tryAgain()}>
-              try again
-            </span>
-            <span> or let us know in </span>
-            <a href="https://discord.com/invite/subquery">
-              <span style={{ textDecoration: 'underline', cursor: 'pointer', color: 'var(--sq-gray600)' }}>
-                Discord.
-              </span>
-            </a>
-          </>
-        ) : (
-          ''
-        )}
+        It looks like the RPC service is temporarily unavaiable.
       </Typography>
     </div>
   );

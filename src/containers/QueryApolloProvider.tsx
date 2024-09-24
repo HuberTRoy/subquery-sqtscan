@@ -36,7 +36,7 @@ export const networkLink = getDecentraliseLink(
 );
 
 const links = ApolloLink.from([
-  onError(({ graphQLErrors, operation, networkError }) => {
+  onError(({ operation }) => {
     // Filter consumer by community.
     // If community link goes error, apollo-links will try until all failed.
     // So Just catch the error caused by fallback service.
