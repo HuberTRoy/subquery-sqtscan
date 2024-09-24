@@ -1,4 +1,3 @@
-// Copyright 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 import { DependencyList, useCallback, useEffect, useRef, useState } from 'react';
 import { useMemo } from 'react';

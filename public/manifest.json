@@ -1,7 +1,7 @@
 {
-  "short_name": "Subquery Scanner",
-  "name": "Subquery Scanner",
-  "description": "Subquery Scanner",
+  "short_name": "SubQuery Scanner",
+  "name": "SubQuery Scanner",
+  "description": "SubQuery Scanner",
   "iconPath": "favicon.ico",
   "icons": [
     {
