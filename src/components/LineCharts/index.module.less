@@ -3,8 +3,8 @@
   flex-direction: column;
   padding: 24px;
   border-radius: 8px;
-  border: 1px solid var(--card-boder, rgba(223, 227, 232, 0.60));
-  background: #FFF;
+  border: 1px solid var(--card-boder, rgba(223, 227, 232, 0.6));
+  background: #fff;
 
   .headers {
     display: flex;
@@ -23,12 +23,12 @@
           &:not(:first-child)::before {
             display: none;
           }
-  
+
           &-checked {
             background: #fff;
             box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.05);
             color: var(--sq-blue600);
-  
+
             &:hover {
               background: #fff;
               box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.05);
@@ -59,12 +59,12 @@
           &:not(:first-child)::before {
             display: none;
           }
-  
+
           &-checked {
             background: var(--sq-gray800);
             box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.05);
             color: var(--sq-blue600);
-  
+
             &:hover {
               background: var(--sq-gray800);
               box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.05);
@@ -77,7 +77,7 @@
   }
 }
 
-@media screen and (max-width: 768px) { 
+@media screen and (max-width: 768px) {
   .lineCharts {
     padding: 20px;
 
@@ -105,9 +105,9 @@
       .lineChartToolTip {
         width: 100%;
         height: auto;
-        transform: scale(0.66)!important;
-        &>div {
-          width: 100%!important;
+        transform: scale(0.66) !important;
+        & > div {
+          width: 100% !important;
           font-size: 12px;
         }
       }

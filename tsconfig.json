@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2015",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -41,13 +37,8 @@
       "@pages/*": ["src/pages/*"],
       "@utils": ["src/utils"],
       "@utils/*": ["src/utils/*"],
-    }
+    },
   },
-  "include": [
-    "src",
-    "types",
-  ],
-  "exclude": [
-    "node_modules",
-  ]
+  "include": ["src", "types"],
+  "exclude": ["node_modules"],
 }
