@@ -1,0 +1,12 @@
+.container {
+  text-align: left;
+  margin-bottom: 15px;
+}
+
+.status {
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--sq-gray900);
+  text-transform: uppercase;
+}

@@ -1,0 +1,43 @@
+.sidebar {
+  width: 100%;
+  height: 100%;
+  padding-top: 1rem;
+  padding-left: 0.5rem;
+  background: var(--sidebar-background);
+  border-right: 1px solid var(--gray300);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  color: var(--gray800);
+  row-gap: 0.5rem;
+  padding: 1rem;
+}
+
+.navLink:hover {
+  color: var(--gradient-to);
+}
+
+.activeNav {
+  color: var(--sq-primary-blue);
+  background: var(--sidebar-background-hover);
+  width: 100%;
+}
+
+.activeNav > p,
+.navLink > p:hover {
+  color: inherit !important;
+}
+
+.label {
+  color: inherit;
+  line-height: 2rem;
+}

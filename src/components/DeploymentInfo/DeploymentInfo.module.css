@@ -1,0 +1,39 @@
+.container {
+  margin: 1rem 0;
+}
+
+.projectInfo {
+  display: flex;
+  height: 5em;
+}
+
+.ipfsImage {
+  object-fit: cover;
+  width: 68px;
+  height: 68px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.projectTextInfo {
+  margin: 0 1rem;
+}
+
+.deployment {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.text {
+  color: var(--gray500);
+}
+
+.link {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  &:hover {
+    color: var(--sq-blue600);
+  }
+}

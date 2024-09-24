@@ -1,0 +1,24 @@
+.text {
+  color: var(--gray900);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.title {
+  font-weight: 600;
+}
+
+.desc {
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+}
+
+.icon {
+  padding-top: 0.125rem;
+}

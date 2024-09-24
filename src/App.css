@@ -1,0 +1,41 @@
+.Main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.scannerMain {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--dark-mode-background);
+}
+
+.Header {
+  flex: 0 1 auto;
+}
+
+.Content {
+  display: flex;
+  flex: 1 1 auto;
+  position: relative;
+}
+
+.content-width {
+  width: 100%;
+  padding: 2rem;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+
+  /* sidebar width */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+p {
+  margin-bottom: 0;
+}

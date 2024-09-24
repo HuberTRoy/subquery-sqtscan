@@ -1,0 +1,16 @@
+.seasonProgress {
+  flex: 2.5;
+  padding: 1.2rem 3rem 1rem 1rem;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress {
+  flex: 0.7;
+}
+
+.description {
+  flex: 0.3;
+}

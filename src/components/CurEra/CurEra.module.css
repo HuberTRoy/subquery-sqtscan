@@ -1,0 +1,19 @@
+.currentEraText {
+  text-align: right;
+}
+
+.countdownText {
+  color: var(--gray700);
+}
+
+.eraContainer {
+  display: flex;
+  width: 10rem;
+  flex-direction: column;
+}
+
+.eraProgress {
+  padding-top: 3px;
+  padding-right: 8px;
+  text-align: right;
+}

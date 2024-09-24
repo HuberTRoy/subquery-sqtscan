@@ -1,0 +1,52 @@
+.container {
+  border-radius: 4px;
+  border: 1px solid;
+  padding: 2px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.container-blue {
+  border-color: var(--info);
+  background: var(--info-opac);
+}
+
+.container-gray {
+  border-color: var(--weak);
+  background: var(--weak-opac);
+}
+
+.container-red {
+  border-color: var(--error);
+  background: var(--error-opac);
+}
+
+.container-green {
+  border-color: var(--success);
+  background: var(--success-opac);
+}
+
+.text {
+  font-family: Futura;
+  font-size: 12px;
+  line-height: 20px;
+  text-transform: uppercase;
+  margin-bottom: 0;
+}
+
+.text-blue {
+  color: var(--info);
+}
+
+.text-gray {
+  color: var(--weak);
+}
+
+.text-red {
+  color: var(--error);
+}
+
+.text-green {
+  color: var(--success);
+}
