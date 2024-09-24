@@ -37,7 +37,7 @@ export const ScannerHeader: React.FC = () => {
     <div className={styles.scannerHeader}>
       <SubqlHeader
         customLogo={
-          <img src="/logo-new.svg" width="140px" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}></img>
+          <img src="/logo.svg" width="140px" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}></img>
         }
         closeDrawerAfterNavigate
         navigate={(link) => {
