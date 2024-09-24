@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { IoSearch } from 'react-icons/io5';
 import { useNavigate } from 'react-router';
 import { gql, useQuery } from '@apollo/client';
@@ -8,14 +8,13 @@ import { useConsumerHostServices } from '@hooks/useConsumerHostServices';
 import { useEra } from '@hooks/useEra';
 import { CurrentEraValue, parseRawEraValue } from '@hooks/useEraValue';
 import { Typography } from '@subql/components';
-import { TOKEN } from '@utils';
+import { formatNumber, formatSQT, TOKEN } from '@utils';
 import { usePrevious } from 'ahooks';
-import { Button, Input, Select, Table } from 'antd';
+import { Input, Select, Table } from 'antd';
 import BigNumberJs from 'bignumber.js';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash-es';
 
-import { formatNumber, formatSQT } from '../../../utils/numberFormatters';
 import styles from './index.module.less';
 
 interface IProps {}

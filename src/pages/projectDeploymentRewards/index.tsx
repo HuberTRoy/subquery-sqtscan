@@ -7,15 +7,14 @@ import { useConsumerHostServices } from '@hooks/useConsumerHostServices';
 import { useEra } from '@hooks/useEra';
 import { Typography } from '@subql/components';
 import { useAsyncMemo } from '@subql/react-hooks';
-import { TOKEN } from '@utils';
-import { Button, Input, Radio, Select, Table, Tooltip } from 'antd';
+import { formatNumber, formatSQT, TOKEN } from '@utils';
+import { Input, Radio, Select, Table, Tooltip } from 'antd';
 import BigNumberJs from 'bignumber.js';
 import dayjs from 'dayjs';
 import { parseEther } from 'ethers/lib/utils';
 import { t } from 'i18next';
 import { debounce } from 'lodash-es';
 
-import { formatNumber, formatSQT } from '../../../utils/numberFormatters';
 import styles from './index.module.less';
 
 interface IProps {}

@@ -1,4 +1,4 @@
-import React, { FC, useCallback } from 'react';
+import { FC, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { gql, useQuery } from '@apollo/client';
 import { DeploymentInfo } from '@components/DeploymentInfo';
@@ -8,13 +8,12 @@ import { useEra } from '@hooks/useEra';
 import { useSortedIndexerDeployments } from '@hooks/useSortedIndexerDeployments';
 import { Typography } from '@subql/components';
 import { useAsyncMemo } from '@subql/react-hooks';
-import { TOKEN } from '@utils';
+import { formatNumber, formatSQT, TOKEN } from '@utils';
 import { Breadcrumb, Button, Table } from 'antd';
 import BigNumberJs from 'bignumber.js';
 import clsx from 'clsx';
 import dayjs from 'dayjs';
 
-import { formatNumber, formatSQT } from '../../../utils/numberFormatters';
 import { RewardsByType } from '../projectDetail/components/rewardsByType/rewardsByType';
 import styles from './index.module.less';
 

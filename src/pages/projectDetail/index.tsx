@@ -9,14 +9,13 @@ import { useAsyncMemo } from '@hooks/useAsyncMemo';
 import { useConsumerHostServices } from '@hooks/useConsumerHostServices';
 import { useEra } from '@hooks/useEra';
 import { Typography } from '@subql/components';
-import { TOKEN } from '@utils';
+import { formatNumber, formatSQT, TOKEN } from '@utils';
 import { usePrevious } from 'ahooks';
 import { Breadcrumb, Button, Table } from 'antd';
 import BigNumberJs from 'bignumber.js';
 import clsx from 'clsx';
 import dayjs from 'dayjs';
 
-import { formatNumber, formatSQT } from '../../../utils/numberFormatters';
 import { PriceQueriesChart } from './components/priceQueries/priceQueries';
 import { RewardsByType } from './components/rewardsByType/rewardsByType';
 import styles from './index.module.less';

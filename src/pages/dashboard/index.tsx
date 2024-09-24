@@ -5,12 +5,11 @@ import { useConsumerHostServices } from '@hooks/useConsumerHostServices';
 import { useEra } from '@hooks/useEra';
 import { Typography } from '@subql/components';
 import { useAsyncMemo } from '@subql/react-hooks';
-import { TOKEN } from '@utils';
+import { formatNumber, formatSQT, TOKEN } from '@utils';
 import { Button, Table } from 'antd';
 import BigNumberJs from 'bignumber.js';
 import dayjs from 'dayjs';
 
-import { formatNumber, formatSQT } from '../../../utils/numberFormatters';
 import { OperatorRewardsLineChart } from './components/operatorRewardsChart/OperatorRewardsLineChart';
 import styles from './index.module.less';
 

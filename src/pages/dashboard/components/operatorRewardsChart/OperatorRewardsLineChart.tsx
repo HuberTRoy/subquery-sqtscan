@@ -2,7 +2,7 @@ import { CSSProperties, useEffect, useMemo, useState } from 'react';
 import { gql, useLazyQuery } from '@apollo/client';
 import LineCharts, { FilterType, xAxisScalesFunc } from '@components/LineCharts';
 import { useEra } from '@hooks/useEra';
-import { getSplitDataByEra } from '@pages/scanner/projectDetail/components/rewardsByType/rewardsByType';
+import { getSplitDataByEra } from '@pages/projectDetail/components/rewardsByType/rewardsByType';
 import { Typography } from '@subql/components';
 import { formatNumber, numToHex, parseError, renderAsync, TOKEN, toPercentage } from '@utils';
 import { Skeleton } from 'antd';
