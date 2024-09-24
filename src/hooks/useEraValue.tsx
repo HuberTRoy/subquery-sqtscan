@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
 import { isBigNumberish } from '@ethersproject/bignumber/lib/bignumber';
-import { useEra } from '@hooks';
+import { useEra } from '@hooks/useEra';
 import assert from 'assert';
 
 type JSONBigInt = {

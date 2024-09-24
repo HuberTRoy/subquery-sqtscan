@@ -11,10 +11,10 @@ import { Tooltip } from 'antd';
 import { clsx } from 'clsx';
 
 import { useProjectMetadata } from '../../containers';
-import { useAsyncMemo } from '../../hooks';
+import { useAsyncMemo } from '../../hooks/useAsyncMemo';
 import { useDeploymentMetadata } from '../../hooks/useDeploymentMetadata';
 import { ProjectMetadata } from '../../models';
-import { isUndefined, parseError, renderAsync } from '../../utils';
+import { isUndefined, renderAsync } from '../../utils';
 import Copy from '../Copy';
 import IPFSImage from '../IPFSImage';
 import styles from './DeploymentInfo.module.css';
@@ -97,7 +97,7 @@ export const DeploymentMeta: React.FC<{ deploymentId: string; projectMetadata?: 
 
   return renderAsync(metadata, {
     loading: () => <Spinner />,
-    error: (e) => <Typography>{`Failed to load project info: ${parseError(e)}`}</Typography>,
+    error: (e) => <Typography>{`Failed to load project info: ${e}`}</Typography>,
     data: (projectMeta) => {
       if (!projectMeta) {
         return <Typography>Project metadata not found</Typography>;

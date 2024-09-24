@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useEra } from '@hooks';
+import { useEra } from '@hooks/useEra';
 import { Spinner, Typography } from '@subql/components';
 import { Progress } from 'antd';
 import dayjs from 'dayjs';

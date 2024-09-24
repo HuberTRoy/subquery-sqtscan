@@ -6,11 +6,9 @@
 import ReactDOM from 'react-dom/client';
 import TagManager from 'react-gtm-module';
 
-import './i18n';
 import '@subql/components/dist/subquery-components.css';
 
 import './config/polyfill';
-import './config/sentryConf';
 import './config/dayjsConf';
 import 'reflect-metadata';
 import './index.less';

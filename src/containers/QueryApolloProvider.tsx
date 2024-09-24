@@ -5,7 +5,6 @@ import React, { PropsWithChildren } from 'react';
 import { ApolloClient, ApolloLink, ApolloProvider, HttpLink, InMemoryCache } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
 import { offsetLimitPagination } from '@apollo/client/utilities';
-import { captureException } from '@sentry/react';
 import { deploymentHttpLink } from '@subql/apollo-links';
 
 const getHttpLink = (uri: string | undefined) => new HttpLink({ uri });
@@ -45,17 +44,6 @@ const links = ApolloLink.from([
       const res = operation.getContext();
       const url = res?.response?.url || res.url;
       if (url && url.match(/.+\/(query)|(payg)\/[0-9a-zA-Z]{46}/)) return;
-      captureException(`Query fetch`, {
-        extra: {
-          graphqlError: graphQLErrors?.reduce((a, b) => ({ message: a.message + ' ' + b.message }), { message: '' })
-            .message,
-          operation: operation.query.loc?.source.body,
-          variable: operation.variables,
-          url: url,
-          networkMsg: networkError?.message,
-          networkName: networkError?.name,
-        },
-      });
     } catch {
       // don't care there have errors.
     }

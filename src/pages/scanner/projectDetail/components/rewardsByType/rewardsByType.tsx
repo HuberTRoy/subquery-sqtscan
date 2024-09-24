@@ -1,13 +1,107 @@
 import { CSSProperties, useEffect, useMemo, useState } from 'react';
 import { gql, useLazyQuery } from '@apollo/client';
 import LineCharts, { FilterType, xAxisScalesFunc } from '@components/LineCharts';
-import { useEra } from '@hooks';
-import { getSplitDataByEra } from '@pages/dashboard/components/RewardsLineChart/RewardsLineChart';
+import { Era, useEra } from '@hooks/useEra';
 import { Typography } from '@subql/components';
-import { formatNumber, numToHex, parseError, renderAsync, TOKEN, toPercentage } from '@utils';
+import { formatNumber, formatSQT, numToHex, parseError, renderAsync, TOKEN, toPercentage } from '@utils';
 import { Skeleton } from 'antd';
 import BigNumberJs from 'bignumber.js';
 import dayjs from 'dayjs';
+
+export const getSplitDataByEra = (currentEra: Era, includeNextEra = false) => {
+  const period = currentEra.period;
+  const splitData = 86400;
+
+  const plusedEra = period > splitData ? 1 : Math.floor(splitData / period);
+  // TODO:
+  //   There have some problems in here
+  //   1. secondFromLastTimes / period is just a fuzzy result. also we can get the exactly result by Graphql.
+  //   2. based on 1. also need to calcuate the xAxisScale in props.
+  //   3. based on 1. and 2. also need to do a lots of things for compatite dev env(1 era < 1 day).
+  const getIncludesEras = (lastTimes: dayjs.Dayjs) => {
+    const today = dayjs();
+    const secondsFromLastTimes = (+today - +lastTimes) / 1000;
+
+    const eras = Math.ceil(secondsFromLastTimes / period) + (includeNextEra ? plusedEra : 0);
+
+    const currentEraIndex = includeNextEra ? currentEra.index + plusedEra : currentEra.index;
+    const includesEras = new Array(eras)
+      .fill(0)
+      .map((_, index) => currentEraIndex - index)
+      .filter((i) => i > 0);
+    return {
+      includesErasHex: includesEras.map(numToHex),
+      includesEras,
+      allErasHex: new Array(currentEraIndex).fill(0).map((_, index) => numToHex(index + 1)),
+    };
+  };
+
+  const fillData = (
+    rawData: readonly {
+      readonly keys: readonly string[] | null;
+      readonly sum: { readonly amount: string | bigint } | null;
+    }[],
+    includesErasHex: string[],
+    paddingLength: number,
+
+    options?: {
+      fillDevDataByGetMax: boolean;
+    },
+  ) => {
+    if (rawData.some((i) => !i.keys || !i.sum)) {
+      return [];
+    }
+
+    const amounts = rawData.map((i) => {
+      return {
+        key: (i.keys as string[])[0],
+        amount: formatSQT((i.sum as { amount: string | bigint }).amount) as number,
+      };
+    });
+
+    // fill the data that cannot gatherd by Graphql. e.g: includesEras wants to get the data of 0x0c and 0x0d
+    // but Graphql just return the data of 0x0c
+    // in this situation, the amount and nextAmount of 0x0d is 0x0c's nextAmount
+    includesErasHex
+      .sort((a, b) => parseInt(a, 16) - parseInt(b, 16))
+      .forEach((key) => {
+        if (!amounts.find((i) => i.key === key)) {
+          amounts.push({ key: key, amount: 0 });
+        }
+      });
+
+    // Graphql sort is incorrect, because it is a string.
+    let renderAmounts = amounts.sort((a, b) => parseInt(a.key, 16) - parseInt(b.key, 16)).map((i) => i.amount);
+    // but in dev env will less than one day.
+    if (period < splitData) {
+      const eraCountOneDay = splitData / period;
+      renderAmounts = renderAmounts.reduce(
+        (acc: { result: number[]; curResult: number }, cur, index) => {
+          if (options?.fillDevDataByGetMax) {
+            acc.curResult = Math.max(cur, acc.curResult);
+          } else {
+            acc.curResult += cur;
+          }
+          if ((index + 1) % eraCountOneDay === 0 || index === renderAmounts.length - 1) {
+            acc.result.push(acc.curResult);
+            acc.curResult = 0;
+          }
+
+          return acc;
+        },
+        { result: [], curResult: 0 },
+      ).result;
+    }
+
+    if (paddingLength > renderAmounts.length) {
+      new Array(paddingLength - renderAmounts.length).fill(0).forEach((_) => renderAmounts.unshift(0));
+    }
+
+    return renderAmounts;
+  };
+
+  return { getIncludesEras, fillData };
+};
 
 export const RewardsByType = (props: {
   title?: string;

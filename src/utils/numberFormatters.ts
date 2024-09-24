@@ -2,11 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // TODO: migrate all those to client-sdk.
-import { SQT_TOKEN_ADDRESS } from '@containers/Web3';
 import BigNumberJs from 'bignumber.js';
 import { BigNumber, BigNumberish, utils } from 'ethers';
-
-import { tokenDecimals } from './constants';
 
 export function convertStringToNumber(value: string): number {
   return parseFloat(value);
@@ -61,7 +58,7 @@ export const formatSQT = (
   const transVal = typeof val === 'bigint' ? val.toString() : val;
   const result = BigNumberJs(
     BigNumberJs(transVal)
-      .div(10 ** tokenDecimals[SQT_TOKEN_ADDRESS])
+      .div(10 ** 18)
       .toFixed(fixedNum, 1),
   );
 

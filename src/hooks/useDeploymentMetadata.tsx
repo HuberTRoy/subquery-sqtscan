@@ -6,7 +6,7 @@ import { useGetDeploymentLazyQuery } from '@subql/react-hooks';
 
 import { useIPFS } from '../containers';
 import { AsyncData, mergeAsyncLast } from '../utils';
-import { useAsyncMemo } from '.';
+import { useAsyncMemo } from './useAsyncMemo';
 
 type DeploymentMetadata = {
   versionId: string;

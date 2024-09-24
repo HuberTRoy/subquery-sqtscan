@@ -5,7 +5,7 @@ import yaml from 'js-yaml';
 
 import { useIPFS } from '../containers';
 import { AsyncData } from '../utils';
-import { useAsyncMemo } from '.';
+import { useAsyncMemo } from './useAsyncMemo';
 
 export async function fetchIpfsMetadata<T = unknown>(
   catSingle: (cid: string) => Promise<Uint8Array>,

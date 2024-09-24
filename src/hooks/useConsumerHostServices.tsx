@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import React, { useCallback } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { useAccount } from '@containers/Web3';
 import { Modal, openNotification, Typography } from '@subql/components';
 import { getAuthReqHeader, parseError, POST } from '@utils';
 import { limitContract, makeCacheKey } from '@utils/limitation';
@@ -11,8 +10,6 @@ import { Button } from 'antd';
 import axios, { AxiosResponse } from 'axios';
 import { BigNumberish } from 'ethers';
 import { isObject } from 'lodash-es';
-import { generateNonce, SiweMessage } from 'siwe';
-import { useChainId, useSignMessage } from 'wagmi';
 
 const instance = axios.create({
   baseURL: import.meta.env.VITE_CONSUMER_HOST_ENDPOINT,
@@ -39,9 +36,7 @@ export enum LOGIN_CONSUMER_HOST_STATUS_MSG {
 export const useConsumerHostServices = (
   { alert = false, autoLogin = true }: ConsumerHostServicesProps = { alert: false, autoLogin: true },
 ) => {
-  const { address: account } = useAccount();
-  const chainId = useChainId();
-  const { signMessageAsync } = useSignMessage();
+  const account = '0x000000';
 
   const authHeaders = useRef<{ Authorization: string }>(
     getAuthReqHeader(localStorage.getItem(`consumer-host-services-token-${account}`) || ''),
@@ -50,52 +45,7 @@ export const useConsumerHostServices = (
   const [loading, setLoading] = useState(true);
 
   const requestConsumerHostToken = async (account: string) => {
-    try {
-      const tokenRequestUrl = `${import.meta.env.VITE_CONSUMER_HOST_ENDPOINT}/login`;
-
-      const newMsg = new SiweMessage({
-        domain: window.location.host,
-        address: account,
-        statement: `Login to SubQuery Network`,
-        uri: window.location.origin,
-        version: '1',
-        chainId,
-        nonce: generateNonce(),
-      });
-
-      const signature = await signMessageAsync({
-        message: newMsg.prepareMessage(),
-      });
-
-      if (!signature) throw new Error();
-
-      const { response, error } = await POST({
-        endpoint: tokenRequestUrl,
-        requestBody: {
-          message: newMsg.prepareMessage(),
-          signature: signature,
-        },
-      });
-
-      const sortedResponse = response && (await response.json());
-
-      if (error || !response?.ok || sortedResponse?.error) {
-        throw new Error(sortedResponse?.error ?? error);
-      }
-      return { data: sortedResponse?.token };
-    } catch (error) {
-      return {
-        error: parseError(error, {
-          defaultGeneralMsg: 'Failed to request token of consumer host.',
-          errorMappings: [
-            {
-              error: 'Missing consumer',
-              message: 'Please deposit first',
-            },
-          ],
-        }),
-      };
-    }
+    return true;
   };
 
   const alertResDecorator = <T extends (...args: any) => any>(
@@ -117,85 +67,9 @@ export const useConsumerHostServices = (
   };
 
   const loginConsumerHost = async (refresh = false) => {
-    if (account) {
-      if (!refresh) {
-        const cachedToken = localStorage.getItem(`consumer-host-services-token-${account}`);
-        if (cachedToken) {
-          authHeaders.current = getAuthReqHeader(cachedToken);
-          return {
-            status: true,
-            msg: 'use cache',
-          };
-        }
-      }
-
-      let acceptOrCancel: 'pending' | 'cancel' | 'pass' = 'pending';
-      Modal.confirm({
-        title: 'Login to SubQuery Network',
-        width: 572,
-        content: (
-          <Typography>
-            <p>You must sign a request using your wallet to login to SubQuery</p>
-            <p>
-              This is only required once for each browser and does not cost any transaction fees - it is used to prove
-              you have access to your wallet address.
-            </p>
-          </Typography>
-        ),
-        cancelText: 'Cancel',
-        className: 'confirmModal',
-        okText: 'Sign Request using Wallet',
-        cancelButtonProps: {
-          shape: 'round',
-          size: 'large',
-        },
-        okButtonProps: {
-          shape: 'round',
-          size: 'large',
-          type: 'primary',
-        },
-        icon: null,
-        onOk: () => {
-          acceptOrCancel = 'pass';
-        },
-        onCancel: () => {
-          acceptOrCancel = 'cancel';
-        },
-      });
-
-      await waitForSomething({ func: () => acceptOrCancel !== 'pending' });
-      // https://github.com/microsoft/TypeScript/issues/9998
-      const isCancel = (res: typeof acceptOrCancel): res is 'cancel' => res === 'cancel';
-      if (isCancel(acceptOrCancel)) {
-        return {
-          status: false,
-          msg: 'user reject sign',
-        };
-      }
-
-      const res = await requestConsumerHostToken(account);
-
-      if (res.error) {
-        return {
-          status: false,
-          msg: res.error,
-        };
-      }
-
-      if (res.data) {
-        authHeaders.current = getAuthReqHeader(res.data);
-        localStorage.setItem(`consumer-host-services-token-${account}`, res.data);
-        setHasLogin(true);
-        return {
-          status: true,
-          msg: 'ok',
-        };
-      }
-    }
-
     return {
-      status: false,
-      msg: 'Please check your wallet if works',
+      status: true,
+      msg: 'ok',
     };
   };
 

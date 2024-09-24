@@ -1,10 +1,11 @@
 import React, { FC, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { gql, useQuery } from '@apollo/client';
-import { DeploymentInfo } from '@components';
+import { DeploymentInfo } from '@components/DeploymentInfo';
 import { IndexerName } from '@components/IndexerDetails/IndexerName';
-import { useEra, useSortedIndexerDeployments } from '@hooks';
 import { useConsumerHostServices } from '@hooks/useConsumerHostServices';
+import { useEra } from '@hooks/useEra';
+import { useSortedIndexerDeployments } from '@hooks/useSortedIndexerDeployments';
 import { Typography } from '@subql/components';
 import { useAsyncMemo } from '@subql/react-hooks';
 import { TOKEN } from '@utils';

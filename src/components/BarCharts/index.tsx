@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { CSSProperties, FC, useMemo } from 'react';
-import { useEra } from '@hooks';
+import { useEra } from '@hooks/useEra';
 import { usePropsValue } from '@hooks/usePropsValue';
 import { Spinner, Typography } from '@subql/components';
 import { formatNumber } from '@utils/numberFormatters';

@@ -1,11 +1,12 @@
 // Copyright 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { captureException } from '@sentry/react';
 import { openNotification } from '@subql/components';
 import contractErrorCodes from '@subql/contract-sdk/publish/revertcode.json';
 import { t } from 'i18next';
 import { isObject, isString } from 'lodash-es';
+
+const captureException = (x: string, y: any) => {};
 
 export const walletConnectionErrors = [
   {

@@ -12,7 +12,7 @@ import { toSvg } from 'jdenticon';
 
 import { IndexerDetails } from 'src/models';
 
-import { useIndexerMetadata } from '../../hooks';
+import { useIndexerMetadata } from '../../hooks/useIndexerMetadata';
 import { useWeb3Name } from '../../hooks/useSpaceId';
 import { truncateAddress } from '../../utils';
 import Copy from '../Copy';

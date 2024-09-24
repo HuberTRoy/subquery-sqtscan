@@ -1,8 +1,8 @@
 import React, { FC, useMemo } from 'react';
 import { gql, useQuery } from '@apollo/client';
-import { DeploymentMeta } from '@components';
-import { useEra } from '@hooks';
+import { DeploymentMeta } from '@components/DeploymentInfo';
 import { useConsumerHostServices } from '@hooks/useConsumerHostServices';
+import { useEra } from '@hooks/useEra';
 import { Typography } from '@subql/components';
 import { useAsyncMemo } from '@subql/react-hooks';
 import { TOKEN } from '@utils';

@@ -1,7 +1,7 @@
 import { CSSProperties } from 'react';
 import BarCharts from '@components/BarCharts';
-import { useEra } from '@hooks';
 import { useConsumerHostServices } from '@hooks/useConsumerHostServices';
+import { useEra } from '@hooks/useEra';
 import { Typography } from '@subql/components';
 import { useAsyncMemo } from '@subql/react-hooks';
 import { formatNumber, formatSQT, parseError, renderAsync } from '@utils';
