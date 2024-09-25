@@ -172,7 +172,7 @@ export const OperatorRewardsLineChart = (props: {
               return `<div class="col-flex" style="width: 280px; font-size: 12px;">
               <span>${curDate.format('MMM D, YYYY')}</span>
               <div class="flex-between" style="margin-top: 8px;">
-                <span>Total</span>
+                <span>Total Rewards</span>
                 <span>${formatNumber(rawRewardsData.total[index])} ${TOKEN}</span>
               </div>
               <div class="flex-between" style="margin: 8px 0;">
@@ -180,6 +180,7 @@ export const OperatorRewardsLineChart = (props: {
                 <span>${formatNumber(rawRewardsData.allocation[index])} ${TOKEN} (${toPercentage(
                   rawRewardsData.allocation[index],
                   rawRewardsData.total[index],
+                  0,
                 )})</span>
               </div>
               <div class="flex-between">
@@ -187,6 +188,7 @@ export const OperatorRewardsLineChart = (props: {
               <span>${formatNumber(rawRewardsData.query[index])} ${TOKEN} (${toPercentage(
                 rawRewardsData.query[index],
                 rawRewardsData.total[index],
+                0,
               )})</span>
             </div>
             </div>`;

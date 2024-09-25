@@ -41,9 +41,9 @@ export function mulToPercentage(value: number | string, mulUnit = 100, decimalPl
   return `${(sortedValue * mulUnit).toFixed(decimalPlaces)} %`;
 }
 
-export const toPercentage = (val: number, total: number, bigNumber = false) => {
+export const toPercentage = (val: number, total: number, decimals: number = 2) => {
   if (total === 0) return `100 %`;
-  return ((val / total) * 100).toFixed(2) + '%';
+  return ((val / total) * 100).toFixed(decimals) + '%';
 };
 
 export const formatSQT = (

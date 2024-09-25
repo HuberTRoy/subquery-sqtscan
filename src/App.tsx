@@ -3,7 +3,7 @@
 import React, { PropsWithChildren } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { ScannerHeader } from '@components/Header';
-import { Footer, SubqlProvider } from '@subql/components';
+import { SubqlProvider } from '@subql/components';
 
 import { IPFSProvider, ProjectMetadataProvider, QueryApolloProvider } from './containers';
 import { ScannerRouterComponent } from './router';
@@ -29,7 +29,6 @@ const RenderRouter: React.FC = () => {
       <div className="scannerMain">
         <ScannerHeader></ScannerHeader>
         <ScannerRouterComponent></ScannerRouterComponent>
-        <Footer simple></Footer>
       </div>
     </BrowserRouter>
   );

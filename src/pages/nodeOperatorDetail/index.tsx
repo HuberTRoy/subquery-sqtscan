@@ -27,7 +27,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
     autoLogin: false,
   });
 
-  const indexerRewardsInfos = useQuery<{
+  const getIndexerRewardsInfos = useQuery<{
     eraIndexerApies: {
       nodes: {
         indexerId: string;
@@ -74,7 +74,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
     },
   );
 
-  const indexerDeployments = useSortedIndexerDeployments(id || '');
+  const indexerDeploymentsSorted = useSortedIndexerDeployments(id || '');
 
   const queriesOfIndexers = useAsyncMemo(async () => {
     if (!id || !currentEra.data?.index) {
@@ -99,7 +99,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
   }, [currentEra.data?.index, id]);
 
   const queriesOfDeployments = useAsyncMemo(async () => {
-    if (!id || !currentEra.data?.index || !indexerDeployments.data) {
+    if (!id || !currentEra.data?.index || !indexerDeploymentsSorted.data) {
       return [];
     }
 
@@ -110,14 +110,14 @@ const ScannerDashboard: FC<IProps> = (props) => {
     const endDate = selectEraInfo?.endTime ? dayjs(selectEraInfo?.endTime || '0').format('YYYY-MM-DD') : undefined;
 
     const queries = await getStatisticQueries({
-      deployment: indexerDeployments.data.map((item) => item.deploymentId || ''),
+      deployment: indexerDeploymentsSorted.data.map((item) => item.deploymentId || ''),
       indexer: [id.toLowerCase()],
       start_date: startDate,
       end_date: endDate,
     });
 
     return queries?.data?.list?.[0].list || [];
-  }, [currentEra.data?.index, indexerDeployments.data, id]);
+  }, [currentEra.data?.index, indexerDeploymentsSorted.data, id]);
 
   const getDeploymentQueries = useCallback(
     (deployment: string) => {
@@ -143,7 +143,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
               </Typography>
             ),
             onClick: () => {
-              navigate(`/node-operators`);
+              navigate(`/operators`);
             },
           },
           {
@@ -178,8 +178,8 @@ const ScannerDashboard: FC<IProps> = (props) => {
               <Typography>
                 {formatNumber(
                   formatSQT(
-                    indexerRewardsInfos.data?.indexerEraDeploymentRewards?.groupedAggregates?.[0]?.sum?.totalRewards ||
-                      '0',
+                    getIndexerRewardsInfos.data?.indexerEraDeploymentRewards?.groupedAggregates?.[0]?.sum
+                      ?.totalRewards || '0',
                   ),
                 )}{' '}
                 {TOKEN}
@@ -191,7 +191,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
                 Projects
               </Typography>
 
-              <Typography>{indexerDeployments.data?.length || 0}</Typography>
+              <Typography>{indexerDeploymentsSorted.data?.length || 0}</Typography>
             </div>
 
             <div className="flex gap32">
@@ -202,7 +202,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
               <Typography>
                 {formatNumber(
                   formatSQT(
-                    indexerRewardsInfos.data?.indexerEraDeploymentRewards?.groupedAggregates?.[0]?.sum
+                    getIndexerRewardsInfos.data?.indexerEraDeploymentRewards?.groupedAggregates?.[0]?.sum
                       ?.allocationRewards || '0',
                   ),
                 )}{' '}
@@ -218,8 +218,8 @@ const ScannerDashboard: FC<IProps> = (props) => {
               <Typography>
                 {formatNumber(
                   formatSQT(
-                    indexerRewardsInfos.data?.indexerEraDeploymentRewards?.groupedAggregates?.[0]?.sum?.queryRewards ||
-                      '0',
+                    getIndexerRewardsInfos.data?.indexerEraDeploymentRewards?.groupedAggregates?.[0]?.sum
+                      ?.queryRewards || '0',
                   ),
                 )}{' '}
                 {TOKEN}
@@ -247,14 +247,14 @@ const ScannerDashboard: FC<IProps> = (props) => {
       <div className={styles.dashboardInner}>
         <div className="flex" style={{ marginBottom: 24 }}>
           <Typography variant="large" weight={600}>
-            Projects ({indexerDeployments.data?.length || 0})
+            Projects ({indexerDeploymentsSorted.data?.length || 0})
           </Typography>
         </div>
 
         <Table
           rowKey={(record, index) => record.deploymentId || index || '0'}
           className={'darkTable'}
-          loading={indexerDeployments.loading}
+          loading={indexerDeploymentsSorted.loading}
           columns={[
             {
               title: 'ProjectS',
@@ -313,11 +313,12 @@ const ScannerDashboard: FC<IProps> = (props) => {
               ),
             },
           ]}
-          dataSource={indexerDeployments.data || []}
+          dataSource={indexerDeploymentsSorted.data || []}
           pagination={false}
         ></Table>
       </div>
     </div>
   );
 };
+
 export default ScannerDashboard;

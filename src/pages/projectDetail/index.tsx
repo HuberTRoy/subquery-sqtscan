@@ -323,7 +323,7 @@ const ProjectDetail: FC<IProps> = (props) => {
               </Typography>
             ),
             onClick: () => {
-              navigate(`/project-deployment-rewards`);
+              navigate(`/projects`);
             },
           },
           {
@@ -458,7 +458,7 @@ const ProjectDetail: FC<IProps> = (props) => {
               onCell: (record: (typeof renderData)[number]) => {
                 return {
                   onClick: () => {
-                    navigate(`/node-operator/${record.indexerId}`);
+                    navigate(`/operators/${record.indexerId}`);
                   },
                 };
               },

@@ -58,7 +58,7 @@ export const ScannerHeader: React.FC = () => {
             },
           },
           {
-            link: '/project-deployment-rewards',
+            link: '/projects',
             // @ts-ignore
             label: (
               <span className="flex" style={{ gap: 4 }}>
@@ -71,7 +71,7 @@ export const ScannerHeader: React.FC = () => {
             },
           },
           {
-            link: '/node-operators',
+            link: '/operators',
             // @ts-ignore
             label: (
               <span className="flex" style={{ gap: 4 }}>
@@ -80,7 +80,7 @@ export const ScannerHeader: React.FC = () => {
               </span>
             ),
             active: () => {
-              return window.location.pathname.includes('node-operator');
+              return window.location.pathname.includes('operators');
             },
           },
         ]}

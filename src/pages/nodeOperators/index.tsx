@@ -56,6 +56,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
           first: $first
           offset: $offset
           filter: { id: { includesInsensitive: $indexerId }, active: { equalTo: true } }
+          orderBy: TOTAL_STAKE_DESC
         ) {
           nodes {
             selfStake
@@ -240,7 +241,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
                     theme="dark"
                     address={record.id}
                     onClick={() => {
-                      navigate(`/node-operator/${record.id}`);
+                      navigate(`/operators/${record.id}`);
                     }}
                   />
                 );

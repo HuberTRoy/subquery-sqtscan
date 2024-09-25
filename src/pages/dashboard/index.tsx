@@ -1,4 +1,5 @@
 import React, { FC, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { gql, useQuery } from '@apollo/client';
 import { DeploymentMeta } from '@components/DeploymentInfo';
 import { useConsumerHostServices } from '@hooks/useConsumerHostServices';
@@ -20,7 +21,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
   const { getStatisticQueries } = useConsumerHostServices({
     autoLogin: false,
   });
-  const top5Deployments = useQuery<{
+  const getTop5Deployments = useQuery<{
     eraDeploymentRewards: {
       nodes: { deploymentId: string; totalRewards: string }[];
     };
@@ -42,7 +43,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
     },
   );
 
-  const top5DeploymentsInfomations = useQuery<{
+  const getTop5DeploymentsInfomations = useQuery<{
     deployments: {
       nodes: {
         id: string;
@@ -111,7 +112,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
     `,
     {
       variables: {
-        deploymentIds: top5Deployments.data?.eraDeploymentRewards.nodes.map((node: any) => node.deploymentId) || [],
+        deploymentIds: getTop5Deployments.data?.eraDeploymentRewards.nodes.map((node: any) => node.deploymentId) || [],
         currentIdx: (currentEra.data?.index || 0) - 1,
       },
     },
@@ -119,7 +120,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
 
   const queries = useAsyncMemo(async () => {
     if (!currentEra.data) return [];
-    const deployments = top5Deployments.data?.eraDeploymentRewards.nodes.map((i) => i.deploymentId);
+    const deployments = getTop5Deployments.data?.eraDeploymentRewards.nodes.map((i) => i.deploymentId);
     if (!deployments || !deployments?.length) return [];
     try {
       const res = await getStatisticQueries({
@@ -132,27 +133,29 @@ const ScannerDashboard: FC<IProps> = (props) => {
     } catch (e) {
       return [];
     }
-  }, [top5Deployments.data, currentEra.data?.eras]);
+  }, [getTop5Deployments.data, currentEra.data?.eras]);
 
   const renderData = useMemo(() => {
-    if (top5Deployments.loading || top5DeploymentsInfomations.loading) return [];
+    if (getTop5Deployments.loading || getTop5DeploymentsInfomations.loading) return [];
 
-    return top5Deployments.data?.eraDeploymentRewards.nodes.map((node, index) => {
-      const eraDeploymentRewardsItem = top5DeploymentsInfomations.data?.eraDeploymentRewards.groupedAggregates.find(
+    return getTop5Deployments.data?.eraDeploymentRewards.nodes.map((node, index) => {
+      const eraDeploymentRewardsItem = getTop5DeploymentsInfomations.data?.eraDeploymentRewards.groupedAggregates.find(
         (i) => i.keys[0] === node.deploymentId,
       );
       const allocationRewards = eraDeploymentRewardsItem?.sum.allocationRewards || '0';
-      const totalCount = top5DeploymentsInfomations.data?.deployments.nodes.find((i) => i.id === node.deploymentId)
+      const totalCount = getTop5DeploymentsInfomations.data?.deployments.nodes.find((i) => i.id === node.deploymentId)
         ?.indexers.totalCount;
 
       const totalAllocation =
-        top5DeploymentsInfomations.data?.indexerAllocationSummaries.groupedAggregates.find(
+        getTop5DeploymentsInfomations.data?.indexerAllocationSummaries.groupedAggregates.find(
           (i) => i.keys[0] === node.deploymentId,
         )?.sum.totalAmount || '0';
       const totalQueryRewards = BigNumberJs(eraDeploymentRewardsItem?.sum.totalRewards || '0')
         .minus(allocationRewards)
         .toFixed();
-      const deploymentInfo = top5DeploymentsInfomations.data?.deployments.nodes.find((i) => i.id === node.deploymentId);
+      const deploymentInfo = getTop5DeploymentsInfomations.data?.deployments.nodes.find(
+        (i) => i.id === node.deploymentId,
+      );
 
       const deploymentQueryCount = queries.data?.find((i) => i.deployment === node.deploymentId);
 
@@ -163,7 +166,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
         allocationAmount: formatNumber(formatSQT(totalAllocation)),
         boosterAmount: formatNumber(
           formatSQT(
-            top5DeploymentsInfomations.data?.deploymentBoosterSummaries.groupedAggregates.find(
+            getTop5DeploymentsInfomations.data?.deploymentBoosterSummaries.groupedAggregates.find(
               (i) => i.keys[0] === node.deploymentId,
             )?.sum.totalAmount || '0',
           ),
@@ -206,7 +209,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
         ),
       };
     });
-  }, [top5Deployments, top5DeploymentsInfomations, queries]);
+  }, [getTop5Deployments, getTop5DeploymentsInfomations, queries]);
 
   return (
     <div className={styles.dashboard}>
@@ -217,20 +220,18 @@ const ScannerDashboard: FC<IProps> = (props) => {
       <div className={styles.dashboardInner}>
         <div className="flex" style={{ marginBottom: 24 }}>
           <Typography variant="large" weight={600}>
-            Top 5 Project Rewards
+            Top 5 Project Rewards (Previous Era {currentEra.data?.index})
           </Typography>
           <span style={{ flex: 1 }}></span>
           <Button type="primary" shape="round">
-            <a href="https://app.subquery.network/explorer/home" target="_blank" rel="noreferrer">
-              View All Projects
-            </a>
+            <Link to="/projects">View All Projects</Link>
           </Button>
         </div>
 
         <Table
           rowKey={(record) => record.deploymentId}
           className={'darkTable'}
-          loading={top5Deployments.loading || top5DeploymentsInfomations.loading}
+          loading={getTop5Deployments.loading || getTop5DeploymentsInfomations.loading}
           columns={[
             {
               title: 'Project',
@@ -352,4 +353,5 @@ const ScannerDashboard: FC<IProps> = (props) => {
     </div>
   );
 };
+
 export default ScannerDashboard;

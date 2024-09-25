@@ -467,9 +467,8 @@ const ScannerDashboard: FC<IProps> = (props) => {
           >
             <div className="col-flex" style={{ justifyContent: 'space-between' }}>
               <Typography>Projected Rewards Calculator</Typography>
-              <Typography style={{ visibility: 'hidden' }}>
-                Estimated Rewards One Era: <br></br>
-                {estimatedStakeRewards} {TOKEN}
+              <Typography variant="small">
+                This provides your estimated rewards based on historic data of the selected Era.
               </Typography>
             </div>
 
@@ -521,7 +520,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
                 return {
                   onClick: () => {
                     navigate(
-                      `/project-deployment-rewards/${record.deploymentId}?projectMetadata=${record.projectMetadata}&projectId=${record.projectId}`,
+                      `/projects/${record.deploymentId}?projectMetadata=${record.projectMetadata}&projectId=${record.projectId}`,
                     );
                   },
                 };
