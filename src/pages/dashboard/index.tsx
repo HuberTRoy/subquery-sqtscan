@@ -69,6 +69,11 @@ const ScannerDashboard: FC<IProps> = (props) => {
 
         const deploymentQueryCount = queries.data?.find((i) => i.deployment === node.deploymentId);
 
+        const apy = BigNumberJs(allocationRewards)
+          .div(totalAllocation === '0' ? '1' : totalAllocation)
+          .multipliedBy(52)
+          .multipliedBy(100);
+
         return {
           deploymentId: node.deploymentId,
           projectMetadata: deploymentInfo?.project.metadata,
@@ -89,11 +94,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
                 .toFixed(),
             ),
           ),
-          allocationApy: BigNumberJs(allocationRewards)
-            .div(totalAllocation === '0' ? '1' : totalAllocation)
-            .multipliedBy(52)
-            .multipliedBy(100)
-            .toFixed(2),
+          allocationApy: apy.gt(1000) ? '1000+' : apy.toFixed(2),
           queryRewards: formatNumber(formatSQT(totalQueryRewards)),
           averageQueryRewards: formatNumber(
             formatSQT(
