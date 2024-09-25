@@ -241,10 +241,15 @@ const ScannerDashboard: FC<IProps> = (props) => {
             className="darkSelector"
             style={{ width: 200 }}
             value={selectEra}
-            options={new Array(currentEra.data?.index || 0 || 0).fill(0).map((_, index) => ({
-              label: `Previous Era ${index}`,
-              value: index,
-            }))}
+            //Add options to select previous eras
+            //Order: Current Era, Previous Era 1, Previous Era 2, ...
+            options={[
+              { label: `Current Era ${currentEra.data?.index}`, value: currentEra.data?.index }, // Thêm giá trị currentEra lên đầu
+              ...new Array(currentEra.data?.index || 0).fill(0).map((_, index, arr) => ({
+                label: `Previous Era ${arr.length - 1 - index}`,
+                value: arr.length - 1 - index,
+              })),
+            ]}
             onChange={(value) => {
               setSelectEra(value);
             }}
