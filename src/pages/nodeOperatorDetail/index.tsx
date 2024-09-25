@@ -23,7 +23,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
   const { currentEra } = useEra();
   const { id } = useParams();
   const navigate = useNavigate();
-  const { getUserQueriesAggregation, getStatisticQueries } = useConsumerHostServices({
+  const { getStatisticQueries } = useConsumerHostServices({
     autoLogin: false,
   });
 
@@ -78,9 +78,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
 
   const queriesOfIndexers = useAsyncMemo(async () => {
     if (!id || !currentEra.data?.index) {
-      return {
-        info: { total: '0' },
-      };
+      return { indexer: id, queries: '0' };
     }
 
     const selectEraInfo = currentEra.data?.eras?.at(1);
@@ -89,13 +87,13 @@ const ScannerDashboard: FC<IProps> = (props) => {
 
     const endDate = selectEraInfo?.endTime ? dayjs(selectEraInfo?.endTime || '0').format('YYYY-MM-DD') : undefined;
 
-    const queries = await getUserQueriesAggregation({
-      user_list: [id.toLowerCase()],
+    const queries = await getStatisticQueries({
+      indexer: [id.toLowerCase()],
       start_date: startDate,
       end_date: endDate,
     });
 
-    return queries?.data?.[0] || { info: { total: '0' } };
+    return queries.data.list?.[0] || { indexer: id, queries: '0' };
   }, [currentEra.data?.index, id]);
 
   const queriesOfDeployments = useAsyncMemo(async () => {
@@ -231,11 +229,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
                 Queries
               </Typography>
 
-              <Typography>
-                {BigNumberJs(queriesOfIndexers.data?.info.total || '0')
-                  .div(10 ** 15)
-                  .toFixed(0)}
-              </Typography>
+              <Typography>{formatNumber(BigNumberJs(queriesOfIndexers.data?.queries || '0').toFixed(0), 0)}</Typography>
             </div>
           </div>
         </div>
@@ -253,11 +247,11 @@ const ScannerDashboard: FC<IProps> = (props) => {
 
         <Table
           rowKey={(record, index) => record.deploymentId || index || '0'}
-          className={'darkTable'}
+          className={clsx('darkTable', 'hoverRow')}
           loading={indexerDeploymentsSorted.loading}
           columns={[
             {
-              title: 'ProjectS',
+              title: 'Project deployment',
               dataIndex: 'name',
               key: 'name',
               render: (_, record) => {
@@ -275,6 +269,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
                   {text ? formatNumber(formatSQT(text)) : 0} {TOKEN}
                 </Typography>
               ),
+              sorter: (a, b) => BigNumberJs(a.allocatedAmount || '0').comparedTo(b.allocatedAmount || '0'),
             },
             {
               title: 'Last Era Stake Rewards',
@@ -285,6 +280,8 @@ const ScannerDashboard: FC<IProps> = (props) => {
                   {text ? formatNumber(formatSQT(text)) : 0} {TOKEN}
                 </Typography>
               ),
+              sorter: (a, b) =>
+                BigNumberJs(a.lastEraAllocatedRewards || '0').comparedTo(b.lastEraAllocatedRewards || '0'),
             },
             {
               title: 'Last Era Query Rewards',
@@ -295,12 +292,19 @@ const ScannerDashboard: FC<IProps> = (props) => {
                   {text ? formatNumber(formatSQT(text)) : 0} {TOKEN}
                 </Typography>
               ),
+              sorter: (a, b) => BigNumberJs(a.lastEraQueryRewards || '0').comparedTo(b.lastEraQueryRewards || '0'),
             },
             {
               title: 'Last Era Queries',
               dataIndex: 'deploymentId',
               key: 'deploymentId',
-              render: (deploymentId: string) => <Typography>{getDeploymentQueries(deploymentId)}</Typography>,
+              render: (deploymentId: string) => (
+                <Typography>{formatNumber(getDeploymentQueries(deploymentId), 0)}</Typography>
+              ),
+              sorter: (a, b) =>
+                BigNumberJs(getDeploymentQueries(a.deploymentId || '')).comparedTo(
+                  getDeploymentQueries(b.deploymentId || ''),
+                ),
             },
             {
               title: 'Total Rewards',
@@ -315,6 +319,15 @@ const ScannerDashboard: FC<IProps> = (props) => {
           ]}
           dataSource={indexerDeploymentsSorted.data || []}
           pagination={false}
+          onRow={(record) => {
+            return {
+              onClick: () => {
+                navigate(
+                  `/projects/${record.deploymentId}?projectMetadata=${record.projectMetaCid}&projectId=${record.projectId}`,
+                );
+              },
+            };
+          }}
         ></Table>
       </div>
     </div>

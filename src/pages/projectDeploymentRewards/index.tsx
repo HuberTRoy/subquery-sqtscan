@@ -1,18 +1,18 @@
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import { IoSearch } from 'react-icons/io5';
 import { useNavigate } from 'react-router';
-import { gql, useLazyQuery, useQuery } from '@apollo/client';
 import { DeploymentMeta } from '@components/DeploymentInfo';
 import { useConsumerHostServices } from '@hooks/useConsumerHostServices';
 import { useEra } from '@hooks/useEra';
+import { useGetAllDeployment } from '@hooks/useGetAllDeployment';
 import { Typography } from '@subql/components';
 import { useAsyncMemo } from '@subql/react-hooks';
 import { formatNumber, formatSQT, TOKEN } from '@utils';
 import { Input, Radio, Select, Table, Tooltip } from 'antd';
 import BigNumberJs from 'bignumber.js';
+import clsx from 'clsx';
 import dayjs from 'dayjs';
 import { parseEther } from 'ethers/lib/utils';
-import { t } from 'i18next';
 import { debounce } from 'lodash-es';
 
 import styles from './index.module.less';
@@ -35,216 +35,14 @@ const ScannerDashboard: FC<IProps> = (props) => {
   const [statisticGroup, setStatisticGroup] = useState<'averageRewards' | 'projectedRewards'>('averageRewards');
   const [searchDeployment, setSearchDeployment] = useState<string>('');
   const debounceSearch = useMemo(() => debounce(setSearchDeployment, 500), [setSearchDeployment]);
-  const blockHeightOfQuery = useMemo(() => {
-    if (!currentEra.data?.index) return '99999999999999999';
 
-    if (selectEra === currentEra.data.index - 1 || selectEra === currentEra.data.index) {
-      return '99999999999999999';
-    }
-
-    return currentEra.data.eras?.find((i) => parseInt(i.id, 16) === selectEra)?.createdBlock || '99999999999999999';
-  }, [selectEra, currentEra.data?.index]);
-
-  const [fetchAllDeployments] = useLazyQuery<{
-    eraDeploymentRewards: {
-      nodes: { deploymentId: string; totalRewards: string }[];
-      totalCount: number;
-    };
-  }>(
-    gql`
-      query allDeployments($deploymentId: String = "", $currentIdx: Int!, $first: Int! = 30, $offset: Int! = 0) {
-        eraDeploymentRewards(
-          orderBy: TOTAL_REWARDS_DESC
-          filter: { eraIdx: { equalTo: $currentIdx }, deploymentId: { includesInsensitive: $deploymentId } }
-          first: $first
-          offset: $offset
-        ) {
-          nodes {
-            deploymentId
-            totalRewards
-          }
-          totalCount
-        }
-      }
-    `,
-    {
-      variables: {
-        currentIdx: selectEra,
-        first: pageInfo.pageSize,
-        offset: (pageInfo.currentPage - 1) * pageInfo.pageSize,
-        deploymentId: searchDeployment,
-      },
-    },
-  );
-
-  const [fetchAllDeploymentsInfomations] = useLazyQuery<{
-    deployments: {
-      nodes: {
-        id: string;
-        metadata: string;
-        project: {
-          id: string;
-          metadata: string;
-        };
-        indexers: {
-          totalCount: number;
-        };
-      }[];
-    };
-    indexerAllocationSummaries: {
-      groupedAggregates: { keys: string[]; sum: { totalAmount: string } }[];
-    };
-    deploymentBoosterSummaries: {
-      groupedAggregates: { keys: string[]; sum: { totalAmount: string } }[];
-    };
-    eraDeploymentRewards: {
-      groupedAggregates: { keys: string[]; sum: { allocationRewards: string; totalRewards: string } }[];
-    };
-  }>(gql`
-    query allDeploymentsInfomations($blockHeight: String!, $deploymentIds: [String!], $currentIdx: Int!) {
-      deployments(blockHeight: $blockHeight, filter: { id: { in: $deploymentIds } }) {
-        nodes {
-          id
-          metadata
-          project {
-            id
-            metadata
-          }
-          indexers(filter: { indexer: { active: { equalTo: true } }, status: { notEqualTo: TERMINATED } }) {
-            totalCount
-          }
-        }
-      }
-
-      indexerAllocationSummaries(blockHeight: $blockHeight, filter: { deploymentId: { in: $deploymentIds } }) {
-        groupedAggregates(groupBy: DEPLOYMENT_ID) {
-          keys
-          sum {
-            totalAmount
-          }
-        }
-      }
-
-      deploymentBoosterSummaries(blockHeight: $blockHeight, filter: { deploymentId: { in: $deploymentIds } }) {
-        groupedAggregates(groupBy: DEPLOYMENT_ID) {
-          keys
-          sum {
-            totalAmount
-          }
-        }
-      }
-
-      eraDeploymentRewards(filter: { deploymentId: { in: $deploymentIds }, eraIdx: { equalTo: $currentIdx } }) {
-        groupedAggregates(groupBy: DEPLOYMENT_ID) {
-          keys
-          sum {
-            allocationRewards
-            totalRewards
-          }
-        }
-      }
-    }
-  `);
-
-  const allDeployments = useAsyncMemo(async () => {
-    if (!selectEra) return { nodes: [], totalCount: 0 };
-    let currentOffset = 0;
-    const res = await fetchAllDeployments({
-      variables: {
-        currentIdx: selectEra,
-        first: 100,
-        offset: 0,
-        deploymentId: '',
-      },
-    });
-
-    const result = res.data?.eraDeploymentRewards || { nodes: [], totalCount: 0 };
-    const resultTotal = res.data?.eraDeploymentRewards.totalCount || 0;
-    while (currentOffset < resultTotal) {
-      currentOffset += 100;
-      const res = await fetchAllDeployments({
-        variables: {
-          currentIdx: selectEra,
-          first: 100,
-          offset: currentOffset,
-          deploymentId: '',
-        },
-      });
-
-      result.nodes = result.nodes.concat(res.data?.eraDeploymentRewards.nodes || []);
-    }
-
-    return result;
-  }, [selectEra]);
-
-  const allDeploymentsInfomations = useAsyncMemo(async () => {
-    if (!allDeployments.data?.nodes.length)
-      return {
-        deployments: { nodes: [] },
-        indexerAllocationSummaries: { groupedAggregates: [] },
-        deploymentBoosterSummaries: { groupedAggregates: [] },
-        eraDeploymentRewards: { groupedAggregates: [] },
-      };
-    const deploymentIds = allDeployments.data?.nodes.map((node) => node.deploymentId);
-
-    const chunkedDeploymentIds: string[][] = [];
-    for (let i = 0; i < deploymentIds.length; i += 100) {
-      chunkedDeploymentIds.push(deploymentIds.slice(i, i + 100));
-    }
-
-    const results = await Promise.all(
-      chunkedDeploymentIds.map((chunk) =>
-        fetchAllDeploymentsInfomations({
-          variables: {
-            deploymentIds: chunk,
-            currentIdx: selectEra,
-            blockHeight: blockHeightOfQuery.toString(),
-          },
-        }),
-      ),
-    );
-
-    // Combine results from all chunks
-    return results.reduce(
-      (
-        acc: {
-          deployments: { nodes: any[] };
-          indexerAllocationSummaries: { groupedAggregates: any[] };
-          deploymentBoosterSummaries: { groupedAggregates: any[] };
-          eraDeploymentRewards: { groupedAggregates: any[] };
-        },
-        result,
-      ) => {
-        if (result.data) {
-          acc.deploymentBoosterSummaries.groupedAggregates = [
-            ...acc.deploymentBoosterSummaries.groupedAggregates,
-            ...result.data.deploymentBoosterSummaries.groupedAggregates,
-          ];
-          acc.deployments.nodes = [...acc.deployments.nodes, ...result.data.deployments.nodes];
-          acc.indexerAllocationSummaries.groupedAggregates = [
-            ...acc.indexerAllocationSummaries.groupedAggregates,
-            ...result.data.indexerAllocationSummaries.groupedAggregates,
-          ];
-          acc.eraDeploymentRewards.groupedAggregates = [
-            ...acc.eraDeploymentRewards.groupedAggregates,
-            ...result.data.eraDeploymentRewards.groupedAggregates,
-          ];
-        }
-
-        return acc;
-      },
-      {
-        deployments: { nodes: [] },
-        indexerAllocationSummaries: { groupedAggregates: [] },
-        deploymentBoosterSummaries: { groupedAggregates: [] },
-        eraDeploymentRewards: { groupedAggregates: [] },
-      },
-    );
-  }, [allDeployments.data]);
+  const { allDeployments, allDeploymentsInfomations, loading } = useGetAllDeployment({
+    selectEra,
+  });
 
   const queries = useAsyncMemo(async () => {
     if (!currentEra.data) return [];
-    const deployments = allDeployments.data?.nodes.map((i) => i.deploymentId);
+    const deployments = allDeployments?.nodes.map((i) => i.deploymentId);
     if (!deployments || !deployments?.length) return [];
     const selectedEra = currentEra.data?.eras?.find((i) => parseInt(i.id, 16) === selectEra);
     try {
@@ -258,24 +56,23 @@ const ScannerDashboard: FC<IProps> = (props) => {
     } catch (e) {
       return [];
     }
-  }, [allDeployments.data, selectEra]);
+  }, [allDeployments, selectEra]);
 
   const renderData = useMemo(() => {
     if (selectEra === 0) return [];
-    if (allDeployments.loading) return [];
+    if (loading) return [];
 
-    if (allDeployments.data?.totalCount && !allDeploymentsInfomations.data?.deployments?.nodes?.length) return [];
-    if (!allDeployments.data?.nodes.length) return [];
+    if (!allDeployments?.nodes.length) return [];
 
-    return allDeployments.data?.nodes
+    return allDeployments?.nodes
       .map((node) => {
         const inputStake = BigNumberJs(calcInput).gt(100000000) ? '100000000' : calcInput;
-        const eraDeploymentRewardsItem = allDeploymentsInfomations.data?.eraDeploymentRewards.groupedAggregates.find(
+        const eraDeploymentRewardsItem = allDeploymentsInfomations?.eraDeploymentRewards.groupedAggregates.find(
           (i) => i.keys[0] === node.deploymentId,
         );
 
         const rawTotalStake = BigNumberJs(
-          allDeploymentsInfomations.data?.indexerAllocationSummaries.groupedAggregates.find(
+          allDeploymentsInfomations?.indexerAllocationSummaries.groupedAggregates.find(
             (i) => i.keys[0] === node.deploymentId,
           )?.sum.totalAmount || '0',
         );
@@ -289,8 +86,8 @@ const ScannerDashboard: FC<IProps> = (props) => {
         );
 
         const totalCount =
-          (allDeploymentsInfomations.data?.deployments.nodes.find((i) => i.id === node.deploymentId)?.indexers
-            .totalCount || 0) + (statisticGroup === 'averageRewards' ? 0 : 1);
+          (allDeploymentsInfomations?.deployments.nodes.find((i) => i.id === node.deploymentId)?.indexers.totalCount ||
+            0) + (statisticGroup === 'averageRewards' ? 0 : 1);
 
         const totalAllocation = rawTotalStake
           .plus(statisticGroup === 'averageRewards' ? 0 : parseEther(inputStake.toString()).toString())
@@ -298,15 +95,15 @@ const ScannerDashboard: FC<IProps> = (props) => {
 
         const allocationRewards =
           statisticGroup === 'projectedRewards'
-            ? estimatedRewardsOfInputStake.toString()
+            ? estimatedRewardsOfInputStake.isNaN()
+              ? '0'
+              : estimatedRewardsOfInputStake.toString()
             : eraDeploymentRewardsItem?.sum.allocationRewards || '0';
 
         const totalQueryRewards = BigNumberJs(eraDeploymentRewardsItem?.sum.totalRewards || '0')
           .minus(eraDeploymentRewardsItem?.sum.allocationRewards || '0')
           .toFixed();
-        const deploymentInfo = allDeploymentsInfomations.data?.deployments.nodes.find(
-          (i) => i.id === node.deploymentId,
-        );
+        const deploymentInfo = allDeploymentsInfomations?.deployments.nodes.find((i) => i.id === node.deploymentId);
         const allocationApy = BigNumberJs(allocationRewards || 0)
           .div(statisticGroup === 'averageRewards' ? totalAllocation : parseEther(inputStake.toString()).toString())
           .multipliedBy(52)
@@ -322,14 +119,14 @@ const ScannerDashboard: FC<IProps> = (props) => {
           rawAllocationAmount: totalAllocation,
           rawAllocationRewards: allocationRewards,
           rawBooster: formatSQT(
-            allDeploymentsInfomations.data?.deploymentBoosterSummaries.groupedAggregates.find(
+            allDeploymentsInfomations?.deploymentBoosterSummaries.groupedAggregates.find(
               (i) => i.keys[0] === node.deploymentId,
             )?.sum.totalAmount || '0',
           ),
           allocationAmount: formatNumber(formatSQT(totalAllocation)),
           boosterAmount: formatNumber(
             formatSQT(
-              allDeploymentsInfomations.data?.deploymentBoosterSummaries.groupedAggregates.find(
+              allDeploymentsInfomations?.deploymentBoosterSummaries.groupedAggregates.find(
                 (i) => i.keys[0] === node.deploymentId,
               )?.sum.totalAmount || '0',
             ),
@@ -378,8 +175,18 @@ const ScannerDashboard: FC<IProps> = (props) => {
           ),
         };
       })
-      .filter((i) => i.deploymentId.toLowerCase().includes(searchDeployment.toLowerCase()));
-  }, [allDeployments, allDeploymentsInfomations, calcInput, statisticGroup, queries.data, searchDeployment, selectEra]);
+      .filter((i) => i.deploymentId.toLowerCase().includes(searchDeployment.toLowerCase()))
+      .sort((a, b) => BigNumberJs(b.rawAverageRewards).comparedTo(a.rawAverageRewards));
+  }, [
+    loading,
+    allDeployments,
+    allDeploymentsInfomations,
+    calcInput,
+    statisticGroup,
+    queries.data,
+    searchDeployment,
+    selectEra,
+  ]);
 
   const estimatedStakeRewards = useMemo(() => {
     const selectedRow = renderData?.find((i) => i.deploymentId === rowSelected?.deploymentId);
@@ -506,28 +313,28 @@ const ScannerDashboard: FC<IProps> = (props) => {
 
         <Table
           rowKey={(record) => record.deploymentId}
-          className={'darkTable'}
-          loading={allDeployments.loading || allDeploymentsInfomations.loading}
+          className={clsx('darkTable', 'hoverRow')}
+          loading={loading || currentEra.loading}
+          showSorterTooltip={false}
           columns={[
             {
-              title: 'Project',
+              title: 'Project Deployment',
               dataIndex: 'name',
               key: 'name',
               render: (_: string, record: (typeof renderData)[number]) => {
                 return <DeploymentMeta deploymentId={record.deploymentId} projectMetadata={record.projectMetadata} />;
               },
-              onCell: (record: (typeof renderData)[number]) => {
-                return {
-                  onClick: () => {
-                    navigate(
-                      `/projects/${record.deploymentId}?projectMetadata=${record.projectMetadata}&projectId=${record.projectId}`,
-                    );
-                  },
-                };
-              },
             },
             {
-              title: <Tooltip title={t('scanner.general.operatorsTooltip')}>Node Operators</Tooltip>,
+              title: (
+                <Tooltip
+                  title={
+                    'The Total Stake allocated to this project, including the additional stake you entered in the Projected Rewards Calculator.'
+                  }
+                >
+                  Node Operators
+                </Tooltip>
+              ),
               dataIndex: 'operatorCount',
               key: 'operatorCount',
               render: (text: number) => <Typography>{text}</Typography>,
@@ -536,7 +343,11 @@ const ScannerDashboard: FC<IProps> = (props) => {
               },
             },
             {
-              title: statisticGroup === 'averageRewards' ? 'Stake' : 'Projected Total Stake',
+              title: (
+                <Tooltip title="Total Stake allocated to this project across all Node Operators.">
+                  {statisticGroup === 'averageRewards' ? 'Stake' : 'Projected Total Stake'}
+                </Tooltip>
+              ),
               dataIndex: 'allocationAmount',
               key: 'allocationAmount',
               render: (text: string) => (
@@ -549,7 +360,11 @@ const ScannerDashboard: FC<IProps> = (props) => {
               },
             },
             {
-              title: 'Boost',
+              title: (
+                <Tooltip title="Boost determines the total Stake Rewards to be distributed amongst Node Operators">
+                  Boost
+                </Tooltip>
+              ),
               dataIndex: 'boosterAmount',
               key: 'boosterAmount',
               render: (text: string) => (
@@ -562,7 +377,15 @@ const ScannerDashboard: FC<IProps> = (props) => {
               },
             },
             {
-              title: <Tooltip title={t('scanner.general.projectedRewards')}>Projected Stake Rewards</Tooltip>,
+              title: (
+                <Tooltip
+                  title={
+                    'The projected Stake Rewards you would have theoretically earned if you ran the project in the selected Era. This is an approximation and does not suggest the same reward level in future Eras'
+                  }
+                >
+                  Projected Stake Rewards
+                </Tooltip>
+              ),
               dataIndex: 'allocationRewards',
               key: 'allocationRewards',
               render: (text: string) => (
@@ -575,7 +398,15 @@ const ScannerDashboard: FC<IProps> = (props) => {
               },
             },
             {
-              title: 'Average Stake Rewards',
+              title: (
+                <Tooltip
+                  title="The Average Stake Reward each Node Operator generated. 
+
+                          Stake Rewards are distributed to Node Operators according to their percentage of allocation stake."
+                >
+                  Average Stake Rewards
+                </Tooltip>
+              ),
               dataIndex: 'averageAllocationRewards',
               key: 'averageAllocationRewards',
               render: (text: string) => (
@@ -588,12 +419,17 @@ const ScannerDashboard: FC<IProps> = (props) => {
               },
             },
             {
-              title:
-                statisticGroup === 'averageRewards' ? (
-                  'Stake Apy'
-                ) : (
-                  <Tooltip title={t('scanner.general.projectedApy')}>Projected Stake APY</Tooltip>
-                ),
+              title: (
+                <Tooltip
+                  title={
+                    statisticGroup === 'averageRewards'
+                      ? 'The annualised Stake Reward generated for Stake allocated to this project.'
+                      : 'The projected Stake APY the project would have achieved if you’d staked in the selected Era. This is an approximation and does not suggest the same Stake APYl in future Eras'
+                  }
+                >
+                  {statisticGroup === 'averageRewards' ? 'Stake Apy' : 'Projected Stake APY'}
+                </Tooltip>
+              ),
               dataIndex: 'allocationApy',
               key: 'allocationApy',
               render: (text: string) => <Typography>{text} %</Typography>,
@@ -612,7 +448,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
             },
             {
               title: 'Projected Query Rewards',
-              dataIndex: 'queryRewards',
+              dataIndex: 'averageQueryRewards',
               key: 'queryRewards',
               render: (text: string) => (
                 <Typography>
@@ -644,7 +480,11 @@ const ScannerDashboard: FC<IProps> = (props) => {
               ),
             },
             {
-              title: 'Average Rewards',
+              title: (
+                <Tooltip title="The average total rewards (Stake Rewards + Query Rewards) generated by Node Operators on this project">
+                  Average Rewards
+                </Tooltip>
+              ),
               dataIndex: 'averageRewards',
               key: 'averageRewards',
               render: (text: string) => (
@@ -680,14 +520,14 @@ const ScannerDashboard: FC<IProps> = (props) => {
             ];
 
             if (statisticGroup === 'averageRewards') {
-              return keysOfAver.includes(i.dataIndex);
+              return keysOfAver.includes(i.key);
             } else {
-              return keysOfProj.includes(i.dataIndex);
+              return keysOfProj.includes(i.key);
             }
           })}
           dataSource={renderData}
           pagination={{
-            total: allDeployments.data?.nodes.length,
+            total: allDeployments?.nodes.length,
             pageSize: pageInfo.pageSize,
             pageSizeOptions: ['10', '30', '50', '100'],
             current: pageInfo.currentPage,
@@ -711,9 +551,9 @@ const ScannerDashboard: FC<IProps> = (props) => {
           onRow={(record) => {
             return {
               onClick: () => {
-                setRowSelected({
-                  deploymentId: record.deploymentId,
-                });
+                navigate(
+                  `/projects/${record.deploymentId}?projectMetadata=${record.projectMetadata}&projectId=${record.projectId}`,
+                );
               },
             };
           }}

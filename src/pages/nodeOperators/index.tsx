@@ -22,7 +22,7 @@ interface IProps {}
 const ScannerDashboard: FC<IProps> = (props) => {
   const { currentEra } = useEra();
   const navigate = useNavigate();
-  const { getUserQueriesAggregation } = useConsumerHostServices({
+  const { getStatisticQueries } = useConsumerHostServices({
     autoLogin: false,
   });
   const [selectEra, setSelectEra] = useState<number>((currentEra.data?.index || 1) - 1 || 0);
@@ -135,13 +135,13 @@ const ScannerDashboard: FC<IProps> = (props) => {
 
     const endDate = selectEraInfo?.endTime ? dayjs(selectEraInfo?.endTime || '0').format('YYYY-MM-DD') : undefined;
 
-    const queries = await getUserQueriesAggregation({
-      user_list: allIndexers.data?.indexers.nodes.map((node) => node.id.toLowerCase()) || [],
+    const queries = await getStatisticQueries({
+      indexer: allIndexers.data?.indexers.nodes.map((node) => node.id.toLowerCase()) || [],
       start_date: startDate,
       end_date: endDate,
     });
 
-    return queries.data;
+    return queries?.data?.list;
   }, [currentEra.data?.index, allIndexers.data, selectEra]);
 
   const renderData = useMemo(() => {
@@ -165,7 +165,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
 
       const totalStake = parseRawEraValue(indexer.totalStake, selectEra).current.toString();
       const selfStake = parseRawEraValue(indexer.selfStake, selectEra).current.toString();
-      const queries = queriesOfAllIndexers.data?.find((i) => i.user.toLowerCase() === indexer.id.toLowerCase());
+      const queries = queriesOfAllIndexers.data?.find((i) => i.indexer?.toLowerCase() === indexer.id.toLowerCase());
 
       return {
         ...indexer,
@@ -174,9 +174,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
         delegationStake: formatNumber(formatSQT(BigNumberJs(totalStake).minus(selfStake).toString())),
         allocationRewards: formatNumber(formatSQT(BigNumberJs(indexerRewards?.allocationRewards || 0).toString())),
         queryRewards: formatNumber(formatSQT(BigNumberJs(indexerRewards?.queryRewards || 0).toString())),
-        queries: BigNumberJs(queries?.info.total || 0)
-          .div(10 ** 15)
-          .toFixed(0),
+        queries: BigNumberJs(queries?.queries || 0).toFixed(0),
         apy: BigNumberJs(formatSQT(apy || '0'))
           .multipliedBy(100)
           .toFixed(2),
@@ -202,7 +200,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
         </div>
 
         <div className="flex" style={{ marginBottom: 24, gap: 24 }}>
-          <Select
+          {/* <Select
             className="darkSelector"
             style={{ width: 200 }}
             value={selectEra}
@@ -214,7 +212,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
               setSelectEra(value);
             }}
             loading={currentEra.loading}
-          ></Select>
+          ></Select> */}
           <Input
             className="darkInput"
             style={{ width: 342 }}

@@ -1,14 +1,16 @@
 import React, { FC, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { gql, useQuery } from '@apollo/client';
 import { DeploymentMeta } from '@components/DeploymentInfo';
 import { useConsumerHostServices } from '@hooks/useConsumerHostServices';
 import { useEra } from '@hooks/useEra';
+import { useGetAllDeployment } from '@hooks/useGetAllDeployment';
 import { Typography } from '@subql/components';
 import { useAsyncMemo } from '@subql/react-hooks';
 import { formatNumber, formatSQT, TOKEN } from '@utils';
 import { Button, Table } from 'antd';
 import BigNumberJs from 'bignumber.js';
+import clsx from 'clsx';
 import dayjs from 'dayjs';
 
 import { OperatorRewardsLineChart } from './components/operatorRewardsChart/OperatorRewardsLineChart';
@@ -18,109 +20,18 @@ interface IProps {}
 
 const ScannerDashboard: FC<IProps> = (props) => {
   const { currentEra } = useEra();
+  const navigate = useNavigate();
   const { getStatisticQueries } = useConsumerHostServices({
     autoLogin: false,
   });
-  const getTop5Deployments = useQuery<{
-    eraDeploymentRewards: {
-      nodes: { deploymentId: string; totalRewards: string }[];
-    };
-  }>(
-    gql`
-      query top5Deployments($currentIdx: Int!) {
-        eraDeploymentRewards(orderBy: TOTAL_REWARDS_DESC, filter: { eraIdx: { equalTo: $currentIdx } }, first: 5) {
-          nodes {
-            deploymentId
-            totalRewards
-          }
-        }
-      }
-    `,
-    {
-      variables: {
-        currentIdx: (currentEra.data?.index || 0) - 1,
-      },
-    },
-  );
 
-  const getTop5DeploymentsInfomations = useQuery<{
-    deployments: {
-      nodes: {
-        id: string;
-        metadata: string;
-        project: {
-          metadata: string;
-        };
-        indexers: {
-          totalCount: number;
-        };
-      }[];
-    };
-    indexerAllocationSummaries: {
-      groupedAggregates: { keys: string[]; sum: { totalAmount: string } }[];
-    };
-    deploymentBoosterSummaries: {
-      groupedAggregates: { keys: string[]; sum: { totalAmount: string } }[];
-    };
-    eraDeploymentRewards: {
-      groupedAggregates: { keys: string[]; sum: { allocationRewards: string; totalRewards: string } }[];
-    };
-  }>(
-    gql`
-      query top5DeploymentsInfomations($deploymentIds: [String!], $currentIdx: Int!) {
-        deployments(filter: { id: { in: $deploymentIds } }) {
-          nodes {
-            id
-            metadata
-            project {
-              metadata
-            }
-            indexers(filter: { indexer: { active: { equalTo: true } }, status: { notEqualTo: TERMINATED } }) {
-              totalCount
-            }
-          }
-        }
-
-        indexerAllocationSummaries(filter: { deploymentId: { in: $deploymentIds } }) {
-          groupedAggregates(groupBy: DEPLOYMENT_ID) {
-            keys
-            sum {
-              totalAmount
-            }
-          }
-        }
-
-        deploymentBoosterSummaries(filter: { deploymentId: { in: $deploymentIds } }) {
-          groupedAggregates(groupBy: DEPLOYMENT_ID) {
-            keys
-            sum {
-              totalAmount
-            }
-          }
-        }
-
-        eraDeploymentRewards(filter: { deploymentId: { in: $deploymentIds }, eraIdx: { equalTo: $currentIdx } }) {
-          groupedAggregates(groupBy: DEPLOYMENT_ID) {
-            keys
-            sum {
-              allocationRewards
-              totalRewards
-            }
-          }
-        }
-      }
-    `,
-    {
-      variables: {
-        deploymentIds: getTop5Deployments.data?.eraDeploymentRewards.nodes.map((node: any) => node.deploymentId) || [],
-        currentIdx: (currentEra.data?.index || 0) - 1,
-      },
-    },
-  );
+  const { allDeployments, allDeploymentsInfomations, loading } = useGetAllDeployment({
+    selectEra: (currentEra.data?.index || 1) - 1,
+  });
 
   const queries = useAsyncMemo(async () => {
     if (!currentEra.data) return [];
-    const deployments = getTop5Deployments.data?.eraDeploymentRewards.nodes.map((i) => i.deploymentId);
+    const deployments = allDeployments?.nodes.map((i) => i.deploymentId);
     if (!deployments || !deployments?.length) return [];
     try {
       const res = await getStatisticQueries({
@@ -133,83 +44,88 @@ const ScannerDashboard: FC<IProps> = (props) => {
     } catch (e) {
       return [];
     }
-  }, [getTop5Deployments.data, currentEra.data?.eras]);
+  }, [allDeployments, currentEra.data?.eras]);
 
   const renderData = useMemo(() => {
-    if (getTop5Deployments.loading || getTop5DeploymentsInfomations.loading) return [];
+    if (loading) return [];
 
-    return getTop5Deployments.data?.eraDeploymentRewards.nodes.map((node, index) => {
-      const eraDeploymentRewardsItem = getTop5DeploymentsInfomations.data?.eraDeploymentRewards.groupedAggregates.find(
-        (i) => i.keys[0] === node.deploymentId,
-      );
-      const allocationRewards = eraDeploymentRewardsItem?.sum.allocationRewards || '0';
-      const totalCount = getTop5DeploymentsInfomations.data?.deployments.nodes.find((i) => i.id === node.deploymentId)
-        ?.indexers.totalCount;
-
-      const totalAllocation =
-        getTop5DeploymentsInfomations.data?.indexerAllocationSummaries.groupedAggregates.find(
+    return allDeployments?.nodes
+      .map((node, index) => {
+        const eraDeploymentRewardsItem = allDeploymentsInfomations?.eraDeploymentRewards.groupedAggregates.find(
           (i) => i.keys[0] === node.deploymentId,
-        )?.sum.totalAmount || '0';
-      const totalQueryRewards = BigNumberJs(eraDeploymentRewardsItem?.sum.totalRewards || '0')
-        .minus(allocationRewards)
-        .toFixed();
-      const deploymentInfo = getTop5DeploymentsInfomations.data?.deployments.nodes.find(
-        (i) => i.id === node.deploymentId,
-      );
+        );
+        const allocationRewards = eraDeploymentRewardsItem?.sum.allocationRewards || '0';
+        const totalCount = allDeploymentsInfomations?.deployments.nodes.find((i) => i.id === node.deploymentId)
+          ?.indexers.totalCount;
 
-      const deploymentQueryCount = queries.data?.find((i) => i.deployment === node.deploymentId);
+        const totalAllocation =
+          allDeploymentsInfomations?.indexerAllocationSummaries.groupedAggregates.find(
+            (i) => i.keys[0] === node.deploymentId,
+          )?.sum.totalAmount || '0';
+        const totalQueryRewards = BigNumberJs(eraDeploymentRewardsItem?.sum.totalRewards || '0')
+          .minus(allocationRewards)
+          .toFixed();
+        const deploymentInfo = allDeploymentsInfomations?.deployments.nodes.find((i) => i.id === node.deploymentId);
 
-      return {
-        deploymentId: node.deploymentId,
-        projectMetadata: deploymentInfo?.project.metadata,
-        operatorCount: totalCount,
-        allocationAmount: formatNumber(formatSQT(totalAllocation)),
-        boosterAmount: formatNumber(
-          formatSQT(
-            getTop5DeploymentsInfomations.data?.deploymentBoosterSummaries.groupedAggregates.find(
-              (i) => i.keys[0] === node.deploymentId,
-            )?.sum.totalAmount || '0',
-          ),
-        ),
-        allocationRewards: formatNumber(formatSQT(allocationRewards)),
-        averageAllocationRewards: formatNumber(
-          formatSQT(
-            BigNumberJs(allocationRewards)
-              .div(totalCount || 1)
-              .toFixed(),
-          ),
-        ),
-        allocationApy: BigNumberJs(allocationRewards)
+        const deploymentQueryCount = queries.data?.find((i) => i.deployment === node.deploymentId);
+
+        const apy = BigNumberJs(allocationRewards)
           .div(totalAllocation === '0' ? '1' : totalAllocation)
           .multipliedBy(52)
-          .multipliedBy(100)
-          .toFixed(2),
-        queryRewards: formatNumber(formatSQT(totalQueryRewards)),
-        averageQueryRewards: formatNumber(
-          formatSQT(
-            BigNumberJs(totalQueryRewards)
+          .multipliedBy(100);
+
+        return {
+          deploymentId: node.deploymentId,
+          projectMetadata: deploymentInfo?.project.metadata,
+          operatorCount: totalCount,
+          allocationAmount: formatNumber(formatSQT(totalAllocation)),
+          boosterAmount: formatNumber(
+            formatSQT(
+              allDeploymentsInfomations?.deploymentBoosterSummaries.groupedAggregates.find(
+                (i) => i.keys[0] === node.deploymentId,
+              )?.sum.totalAmount || '0',
+            ),
+          ),
+          allocationRewards: formatNumber(formatSQT(allocationRewards)),
+          averageAllocationRewards: formatNumber(
+            formatSQT(
+              BigNumberJs(allocationRewards)
+                .div(totalCount || 1)
+                .toFixed(),
+            ),
+          ),
+          allocationApy: apy.gt(1000) ? '1000+' : apy.toFixed(2),
+          queryRewards: formatNumber(formatSQT(totalQueryRewards)),
+          averageQueryRewards: formatNumber(
+            formatSQT(
+              BigNumberJs(totalQueryRewards)
+                .div(totalCount || 1)
+                .toFixed(),
+            ),
+          ),
+          queries: formatNumber(deploymentQueryCount?.queries || 0, 0),
+          averageQueries: formatNumber(
+            BigNumberJs(deploymentQueryCount?.queries || 0)
               .div(totalCount || 1)
               .toFixed(),
+            0,
           ),
-        ),
-        queries: formatNumber(deploymentQueryCount?.queries || 0, 0),
-        averageQueries: formatNumber(
-          BigNumberJs(deploymentQueryCount?.queries || 0)
+          totalRewards: formatNumber(formatSQT(eraDeploymentRewardsItem?.sum.totalRewards || '0')),
+          averageRewards: formatNumber(
+            formatSQT(
+              BigNumberJs(eraDeploymentRewardsItem?.sum.totalRewards || '0')
+                .div(totalCount || 1)
+                .toFixed(),
+            ),
+          ),
+          rawAverageRewards: BigNumberJs(eraDeploymentRewardsItem?.sum.totalRewards || '0')
             .div(totalCount || 1)
             .toFixed(),
-          0,
-        ),
-        totalRewards: formatNumber(formatSQT(eraDeploymentRewardsItem?.sum.totalRewards || '0')),
-        averageRewards: formatNumber(
-          formatSQT(
-            BigNumberJs(eraDeploymentRewardsItem?.sum.totalRewards || '0')
-              .div(totalCount || 1)
-              .toFixed(),
-          ),
-        ),
-      };
-    });
-  }, [getTop5Deployments, getTop5DeploymentsInfomations, queries]);
+        };
+      })
+      .sort((a, b) => BigNumberJs(b.rawAverageRewards).comparedTo(a.rawAverageRewards))
+      .slice(0, 5);
+  }, [allDeployments, allDeploymentsInfomations, queries, loading]);
 
   return (
     <div className={styles.dashboard}>
@@ -220,7 +136,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
       <div className={styles.dashboardInner}>
         <div className="flex" style={{ marginBottom: 24 }}>
           <Typography variant="large" weight={600}>
-            Top 5 Project Rewards (Previous Era {currentEra.data?.index})
+            Top 5 Project Rewards {currentEra.data?.index ? `(Previous Era ${currentEra.data?.index - 1})` : ''}
           </Typography>
           <span style={{ flex: 1 }}></span>
           <Button type="primary" shape="round">
@@ -230,8 +146,8 @@ const ScannerDashboard: FC<IProps> = (props) => {
 
         <Table
           rowKey={(record) => record.deploymentId}
-          className={'darkTable'}
-          loading={getTop5Deployments.loading || getTop5DeploymentsInfomations.loading}
+          className={clsx('darkTable', 'hoverRow')}
+          loading={loading}
           columns={[
             {
               title: 'Project',
@@ -345,6 +261,13 @@ const ScannerDashboard: FC<IProps> = (props) => {
               ),
             },
           ]}
+          onRow={(record) => {
+            return {
+              onClick: () => {
+                navigate(`/projects/${record.deploymentId}?projectMetadata=${record.projectMetadata}`);
+              },
+            };
+          }}
           dataSource={renderData}
           pagination={false}
           scroll={{ x: 'max-content' }}

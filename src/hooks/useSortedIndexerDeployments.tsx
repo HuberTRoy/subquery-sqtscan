@@ -27,6 +27,7 @@ export interface UseSortedIndexerDeploymentsReturn extends Pick<DeploymentIndexe
   deploymentId?: string;
   projectId?: string;
   projectName?: string;
+  projectMetaCid?: string;
   projectMeta: ProjectMetadata;
   isOffline?: boolean | undefined;
   lastHeight: number;
@@ -261,6 +262,7 @@ export function useSortedIndexerDeployments(indexer: string): AsyncData<Array<Us
           projectMeta: {
             ...metadata,
           },
+          projectMetaCid: indexerDeployment?.deployment?.project?.metadata,
           allocatedAmount,
           lastEraAllocatedRewards,
           lastEraBurnt,

@@ -463,6 +463,20 @@ label,
   }
 }
 
+.hoverRow.ant-table-wrapper {
+  .ant-table {
+    &-container {
+      .ant-table-tbody {
+        .ant-table-row {
+          &:hover {
+            cursor: pointer;
+          }
+        }
+      }
+    }
+  }
+}
+
 .darkSelector.darkSelector.darkSelector {
   height: 48px;
   .ant-select-selector {
@@ -499,6 +513,16 @@ label,
 
   &::placeholder {
     color: var(--sq-gray500);
+  }
+}
+
+.darkInput.ant-input-outlined {
+  &:hover {
+    background: var(--dark-mode-card);
+  }
+
+  &:focus-within {
+    background-color: var(--dark-mode-card);
   }
 }
 
@@ -595,6 +619,10 @@ label,
       background-size: 400% 100%;
     }
   }
+}
+
+.ant-pagination-item.ant-pagination-item.ant-pagination-item {
+  background-color: transparent;
 }
 
 input::-webkit-outer-spin-button,
