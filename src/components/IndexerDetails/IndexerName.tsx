@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GNU-3.0
 
 import { FC, useEffect, useMemo, useState } from 'react';
 import { useCallback } from 'react';

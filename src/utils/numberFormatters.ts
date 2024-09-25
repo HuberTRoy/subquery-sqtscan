@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GNU-3.0
 
 // TODO: migrate all those to client-sdk.
 import BigNumberJs from 'bignumber.js';

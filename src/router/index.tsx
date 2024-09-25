@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GNU-3.0
 import React from 'react';
 import { FC, LazyExoticComponent, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';

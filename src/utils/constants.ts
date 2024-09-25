@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GNU-3.0
 
 export const DATE_FORMAT = 'DD/MM/YYYY';
 export const DATE_WITH_TIME_FORMAT = 'DD/MM/YYYY hh:mm:ss A';

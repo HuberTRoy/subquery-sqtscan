@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GNU-3.0
 
 import { openNotification } from '@subql/components';
 import contractErrorCodes from '@subql/contract-sdk/publish/revertcode.json';

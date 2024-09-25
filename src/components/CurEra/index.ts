@@ -1,3 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GNU-3.0
 
 export * from './CurEra';

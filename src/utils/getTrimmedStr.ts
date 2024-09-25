@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GNU-3.0
 
 export const getTrimmedStr = (string: string | undefined, maxLength = 9): string | undefined => {
   if (!string) return string;

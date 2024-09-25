@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GNU-3.0
 
 import { indexingProgress } from '@subql/network-clients';
 import axios from 'axios';

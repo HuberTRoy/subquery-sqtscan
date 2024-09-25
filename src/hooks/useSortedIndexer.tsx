@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GNU-3.0
 
 import { useEra } from '@hooks';
 import { useGetDelegationQuery, useGetIndexerQuery } from '@subql/react-hooks';

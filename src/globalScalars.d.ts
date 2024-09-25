@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GNU-3.0
 
 // Remaps types not resolved by graphql codegen
 type GraphQL_Datetime = Date;

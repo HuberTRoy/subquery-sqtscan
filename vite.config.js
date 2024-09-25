@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GNU-3.0
 
 import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';

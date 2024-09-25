@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GNU-3.0
 import React from 'react';
 import { OperationVariables, QueryResult } from '@apollo/client';
 import { Spinner } from '@subql/components';

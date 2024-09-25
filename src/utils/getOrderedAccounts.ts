@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GNU-3.0
 
 export const getOrderedAccounts = <T extends any[], K extends keyof T[number]>(
   accounts: T,
