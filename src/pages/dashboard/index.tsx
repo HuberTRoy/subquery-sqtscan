@@ -1,5 +1,5 @@
 import React, { FC, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { gql, useQuery } from '@apollo/client';
 import { DeploymentMeta } from '@components/DeploymentInfo';
 import { useConsumerHostServices } from '@hooks/useConsumerHostServices';
@@ -9,6 +9,7 @@ import { useAsyncMemo } from '@subql/react-hooks';
 import { formatNumber, formatSQT, TOKEN } from '@utils';
 import { Button, Table } from 'antd';
 import BigNumberJs from 'bignumber.js';
+import clsx from 'clsx';
 import dayjs from 'dayjs';
 
 import { OperatorRewardsLineChart } from './components/operatorRewardsChart/OperatorRewardsLineChart';
@@ -18,6 +19,7 @@ interface IProps {}
 
 const ScannerDashboard: FC<IProps> = (props) => {
   const { currentEra } = useEra();
+  const navigate = useNavigate();
   const { getStatisticQueries } = useConsumerHostServices({
     autoLogin: false,
   });
@@ -230,7 +232,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
 
         <Table
           rowKey={(record) => record.deploymentId}
-          className={'darkTable'}
+          className={clsx('darkTable', 'hoverRow')}
           loading={getTop5Deployments.loading || getTop5DeploymentsInfomations.loading}
           columns={[
             {
@@ -345,6 +347,13 @@ const ScannerDashboard: FC<IProps> = (props) => {
               ),
             },
           ]}
+          onRow={(record) => {
+            return {
+              onClick: () => {
+                navigate(`/projects/${record.deploymentId}?projectMetadata=${record.projectMetadata}`);
+              },
+            };
+          }}
           dataSource={renderData}
           pagination={false}
           scroll={{ x: 'max-content' }}

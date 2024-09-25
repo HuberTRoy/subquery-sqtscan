@@ -233,7 +233,7 @@ export const useConsumerHostServices = (
   }, []);
 
   const getStatisticQueries = useCallback(
-    async (params: { deployment: string[]; indexer?: string[]; start_date: string; end_date?: string }) => {
+    async (params: { deployment?: string[]; indexer?: string[]; start_date: string; end_date?: string }) => {
       const res = await instance.post<IGetStatisticQueries>(`/statistic-queries`, params, {
         headers: authHeaders.current,
       });
@@ -244,7 +244,7 @@ export const useConsumerHostServices = (
   );
 
   const getStatisticQueriesByPrice = useCallback(
-    async (params: { start_date: string; end_date?: string; deployment: string[] }) => {
+    async (params: { start_date: string; end_date?: string; deployment?: string[] }) => {
       const res = await instance.post<IGetStatisticQueriesByPrice>(`/deployment-price-count`, params, {
         headers: authHeaders.current,
       });

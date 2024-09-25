@@ -27,7 +27,7 @@ const ProjectDetail: FC<IProps> = (props) => {
   const navigate = useNavigate();
   const { id: deploymentId } = useParams();
   const [query] = useSearchParams();
-  const { getProjects, getStatisticQueriesByPrice, getStatisticQueries } = useConsumerHostServices({
+  const { getProjects, getStatisticQueries } = useConsumerHostServices({
     autoLogin: false,
   });
   const { getMetadataFromCid } = useProjectMetadata();
@@ -194,7 +194,11 @@ const ProjectDetail: FC<IProps> = (props) => {
   }, [deploymentId, deploymentInfomations.data?.deployment.projectId]);
 
   const queries = useAsyncMemo(async () => {
-    if (!currentEra.data || !deploymentId) return [];
+    if (!currentEra.data || !deploymentId || !selectEra)
+      return {
+        total: 0,
+        list: [],
+      };
     const deployments = [deploymentId];
 
     const selectedEra = currentEra.data?.eras?.find((i) => parseInt(i.id, 16) === selectEra);
@@ -202,15 +206,20 @@ const ProjectDetail: FC<IProps> = (props) => {
     try {
       const res = await getStatisticQueries({
         deployment: deployments,
+        indexer:
+          deploymentInfomations.data?.deployment?.indexers?.nodes.map((i) => i.indexerId.toLowerCase()) || undefined,
         start_date: dayjs(selectedEra?.startTime).format('YYYY-MM-DD'),
         end_date: selectedEra?.endTime ? dayjs(selectedEra?.endTime).format('YYYY-MM-DD') : undefined,
       });
 
-      return res.data.list;
+      return res.data;
     } catch (e) {
-      return [];
+      return {
+        total: 0,
+        list: [],
+      };
     }
-  }, [deploymentId, currentEra.data?.startTime, selectEra]);
+  }, [deploymentId, currentEra.data?.startTime, selectEra, deploymentInfomations.data?.deployment?.indexers]);
 
   const renderData = useMemo(() => {
     if (!deploymentInfomations.data?.deployment?.indexers?.nodes.length) {
@@ -219,6 +228,9 @@ const ProjectDetail: FC<IProps> = (props) => {
 
     return deploymentInfomations.data?.deployment?.indexers?.nodes
       .map((node) => {
+        const queryCount =
+          queries.data?.list.find((i) => i.indexer === node.indexerId.toLowerCase())?.list?.[0]?.queries || 0;
+
         return {
           indexerId: node.indexerId,
           totalRewards: formatNumber(
@@ -245,6 +257,8 @@ const ProjectDetail: FC<IProps> = (props) => {
               (i) => i.keys[0] === node.indexerId,
             )?.sum.queryRewards || '0',
           ),
+          rawQueryCount: queryCount,
+          queryCount: formatNumber(queryCount, 0),
           allocationRewards: formatNumber(
             formatSQT(
               deploymentIndexerRewardsInfos.data?.indexerEraDeploymentRewards.groupedAggregates.find(
@@ -300,7 +314,7 @@ const ProjectDetail: FC<IProps> = (props) => {
       .sort((a, b) => {
         return BigNumberJs(b.rawTotalRewards).comparedTo(a.rawTotalRewards);
       });
-  }, [deploymentInfomations.data, deploymentIndexerRewardsInfos.data, priceOfIndexers.data]);
+  }, [deploymentInfomations.data, deploymentIndexerRewardsInfos.data, priceOfIndexers.data, queries.data]);
 
   const previousRenderData = usePrevious(renderData);
 
@@ -351,7 +365,9 @@ const ProjectDetail: FC<IProps> = (props) => {
             <span style={{ flex: 1 }}></span>
             <Button type="primary" shape="round" size="large">
               <a
-                href={`https://app.subquery.network/explorer/project/${query.get('projectId')}/overview?deploymentId=${deploymentId}`}
+                href={`https://app.subquery.network/explorer/project/${query.get(
+                  'projectId',
+                )}/overview?deploymentId=${deploymentId}`}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -417,9 +433,7 @@ const ProjectDetail: FC<IProps> = (props) => {
                 Queries
               </Typography>
 
-              <Typography>
-                {formatNumber(queries.data?.find((i) => i.deployment === deploymentId)?.queries || 0)}
-              </Typography>
+              <Typography>{formatNumber(queries.data?.total || 0)}</Typography>
             </div>
           </div>
         </div>
@@ -464,7 +478,7 @@ const ProjectDetail: FC<IProps> = (props) => {
               },
             },
             {
-              title: 'Stake',
+              title: 'Allocation Stake',
               dataIndex: 'totalAmount',
               key: 'totalAmount',
               render: (text: string) => (
@@ -490,6 +504,15 @@ const ProjectDetail: FC<IProps> = (props) => {
               },
             },
             {
+              title: 'Stake Apy',
+              dataIndex: 'apy',
+              key: 'apy',
+              render: (text: string) => <Typography>{text} %</Typography>,
+              sorter: (a: (typeof renderData)[number], b: (typeof renderData)[number]) => {
+                return BigNumberJs(a.apy).comparedTo(b.apy);
+              },
+            },
+            {
               title: 'Query rewards',
               dataIndex: 'queryRewards',
               key: 'queryRewards',
@@ -503,12 +526,12 @@ const ProjectDetail: FC<IProps> = (props) => {
               },
             },
             {
-              title: 'Stake Apy',
-              dataIndex: 'apy',
-              key: 'apy',
-              render: (text: string) => <Typography>{text} %</Typography>,
+              title: 'Queries',
+              dataIndex: 'queryCount',
+              key: 'queryCount',
+              render: (text: string) => <Typography>{text}</Typography>,
               sorter: (a: (typeof renderData)[number], b: (typeof renderData)[number]) => {
-                return BigNumberJs(a.apy).comparedTo(b.apy);
+                return BigNumberJs(a.rawQueryCount).comparedTo(b.rawQueryCount);
               },
             },
             {
