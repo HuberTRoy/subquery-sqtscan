@@ -247,11 +247,11 @@ const ScannerDashboard: FC<IProps> = (props) => {
 
         <Table
           rowKey={(record, index) => record.deploymentId || index || '0'}
-          className={'darkTable'}
+          className={clsx('darkTable', 'hoverRow')}
           loading={indexerDeploymentsSorted.loading}
           columns={[
             {
-              title: 'ProjectS',
+              title: 'Project deployment',
               dataIndex: 'name',
               key: 'name',
               render: (_, record) => {
@@ -269,6 +269,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
                   {text ? formatNumber(formatSQT(text)) : 0} {TOKEN}
                 </Typography>
               ),
+              sorter: (a, b) => BigNumberJs(a.allocatedAmount || '0').comparedTo(b.allocatedAmount || '0'),
             },
             {
               title: 'Last Era Stake Rewards',
@@ -279,6 +280,8 @@ const ScannerDashboard: FC<IProps> = (props) => {
                   {text ? formatNumber(formatSQT(text)) : 0} {TOKEN}
                 </Typography>
               ),
+              sorter: (a, b) =>
+                BigNumberJs(a.lastEraAllocatedRewards || '0').comparedTo(b.lastEraAllocatedRewards || '0'),
             },
             {
               title: 'Last Era Query Rewards',
@@ -289,6 +292,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
                   {text ? formatNumber(formatSQT(text)) : 0} {TOKEN}
                 </Typography>
               ),
+              sorter: (a, b) => BigNumberJs(a.lastEraQueryRewards || '0').comparedTo(b.lastEraQueryRewards || '0'),
             },
             {
               title: 'Last Era Queries',
@@ -315,6 +319,15 @@ const ScannerDashboard: FC<IProps> = (props) => {
           ]}
           dataSource={indexerDeploymentsSorted.data || []}
           pagination={false}
+          onRow={(record) => {
+            return {
+              onClick: () => {
+                navigate(
+                  `/projects/${record.deploymentId}?projectMetadata=${record.projectMetaCid}&projectId=${record.projectId}`,
+                );
+              },
+            };
+          }}
         ></Table>
       </div>
     </div>
