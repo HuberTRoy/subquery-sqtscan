@@ -1,10 +1,9 @@
-name: PR - Build
+name: Build and Deploy
 on:
   workflow_dispatch:
-  pull_request:
+  push:
     branches:
       - main
-      - kepler
 
 jobs:
   build:
