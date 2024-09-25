@@ -1,4 +1,4 @@
-# SubQuery Network App
+# SubQuery Network Scanner
 
 This is a community built and operated dApp for Node Operators and Delegators to understand and better interact with
 SubQuery Network. You can find this at [https://subquery-scanner.vercel.app/](https://subquery-scanner.vercel.app/).
