@@ -136,7 +136,8 @@ const ScannerDashboard: FC<IProps> = (props) => {
       <div className={styles.dashboardInner}>
         <div className="flex" style={{ marginBottom: 24 }}>
           <Typography variant="large" weight={600}>
-            Top 5 Project Rewards {currentEra.data?.index ? `(Previous Era ${currentEra.data?.index - 1})` : ''}
+            Top 5 Project Deployment Rewards{' '}
+            {currentEra.data?.index ? `(Previous Era ${currentEra.data?.index - 1})` : ''}
           </Typography>
           <span style={{ flex: 1 }}></span>
           <Button type="primary" shape="round">

@@ -154,6 +154,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
               .div(totalCount || 1)
               .toFixed(),
           ),
+          rawTotalRewards: formatSQT(BigNumberJs(allocationRewards).plus(totalQueryRewards).toString()),
           totalRewards: formatNumber(formatSQT(BigNumberJs(allocationRewards).plus(totalQueryRewards).toString())),
           averageRewards: formatNumber(
             formatSQT(
@@ -176,7 +177,12 @@ const ScannerDashboard: FC<IProps> = (props) => {
         };
       })
       .filter((i) => i.deploymentId.toLowerCase().includes(searchDeployment.toLowerCase()))
-      .sort((a, b) => BigNumberJs(b.rawAverageRewards).comparedTo(a.rawAverageRewards));
+      .sort((a, b) => {
+        if (statisticGroup === 'averageRewards') {
+          return BigNumberJs(b.rawAverageRewards).comparedTo(a.rawAverageRewards);
+        }
+        return BigNumberJs(b.rawTotalRewards).comparedTo(a.rawTotalRewards);
+      });
   }, [
     loading,
     allDeployments,
@@ -455,6 +461,9 @@ const ScannerDashboard: FC<IProps> = (props) => {
                   {text} {TOKEN}
                 </Typography>
               ),
+              sorter: (a: (typeof renderData)[number], b: (typeof renderData)[number]) => {
+                return BigNumberJs(a.rawAverageQueryRewards).comparedTo(b.rawAverageQueryRewards);
+              },
             },
             {
               title: 'Average Query Rewards',
@@ -478,6 +487,9 @@ const ScannerDashboard: FC<IProps> = (props) => {
                   {text} {TOKEN}
                 </Typography>
               ),
+              sorter: (a: (typeof renderData)[number], b: (typeof renderData)[number]) => {
+                return BigNumberJs(a.rawTotalRewards).comparedTo(b.rawTotalRewards);
+              },
             },
             {
               title: (
