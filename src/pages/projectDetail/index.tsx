@@ -337,7 +337,7 @@ const ProjectDetail: FC<IProps> = (props) => {
               </Typography>
             ),
             onClick: () => {
-              navigate(`/projects`);
+              navigate(`/deployments`);
             },
           },
           {

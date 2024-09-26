@@ -141,7 +141,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
           </Typography>
           <span style={{ flex: 1 }}></span>
           <Button type="primary" shape="round">
-            <Link to="/projects">View All Projects</Link>
+            <Link to="/deployments">View All Projects</Link>
           </Button>
         </div>
 
@@ -265,7 +265,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
           onRow={(record) => {
             return {
               onClick: () => {
-                navigate(`/projects/${record.deploymentId}?projectMetadata=${record.projectMetadata}`);
+                navigate(`/deployments/${record.deploymentId}?projectMetadata=${record.projectMetadata}`);
               },
             };
           }}

@@ -563,7 +563,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
             return {
               onClick: () => {
                 navigate(
-                  `/projects/${record.deploymentId}?projectMetadata=${record.projectMetadata}&projectId=${record.projectId}`,
+                  `/deployments/${record.deploymentId}?projectMetadata=${record.projectMetadata}&projectId=${record.projectId}`,
                 );
               },
             };
