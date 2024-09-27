@@ -67,7 +67,7 @@ export const ScannerHeader: React.FC = () => {
               </span>
             ),
             active: () => {
-              return window.location.pathname.includes('projects');
+              return window.location.pathname.includes('deployments');
             },
           },
           {
