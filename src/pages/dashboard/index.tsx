@@ -151,7 +151,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
           loading={loading}
           columns={[
             {
-              title: 'Project',
+              title: 'Project Deployment',
               dataIndex: 'name',
               key: 'name',
               render: (_, record) => {
@@ -184,16 +184,6 @@ const ScannerDashboard: FC<IProps> = (props) => {
               ),
             },
             {
-              title: 'Total Stake Rewards',
-              dataIndex: 'allocationRewards',
-              key: 'allocationRewards',
-              render: (text: string) => (
-                <Typography>
-                  {text} {TOKEN}
-                </Typography>
-              ),
-            },
-            {
               title: 'Average Stake Rewards',
               dataIndex: 'averageAllocationRewards',
               key: 'averageAllocationRewards',
@@ -210,41 +200,15 @@ const ScannerDashboard: FC<IProps> = (props) => {
               render: (text: string) => <Typography>{text} %</Typography>,
             },
             {
-              title: 'Total Queries',
-              dataIndex: 'queries',
-              key: 'queries',
-              render: (text: string) => <Typography>{text}</Typography>,
-            },
-            {
               title: 'Average Queries',
               dataIndex: 'averageQueries',
               key: 'averageQueries',
               render: (text: string) => <Typography>{text}</Typography>,
             },
             {
-              title: 'Total Query Rewards',
-              dataIndex: 'queryRewards',
-              key: 'queryRewards',
-              render: (text: string) => (
-                <Typography>
-                  {text} {TOKEN}
-                </Typography>
-              ),
-            },
-            {
               title: 'Average Query Rewards',
               dataIndex: 'averageQueryRewards',
               key: 'averageQueryRewards',
-              render: (text: string) => (
-                <Typography>
-                  {text} {TOKEN}
-                </Typography>
-              ),
-            },
-            {
-              title: 'Total Rewards',
-              dataIndex: 'totalRewards',
-              key: 'totalRewards',
               render: (text: string) => (
                 <Typography>
                   {text} {TOKEN}
