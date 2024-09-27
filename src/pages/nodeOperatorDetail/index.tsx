@@ -34,6 +34,12 @@ const ScannerDashboard: FC<IProps> = (props) => {
         indexerApy: string;
       }[];
     };
+    eraIndexerDeploymentApies: {
+      nodes: {
+        apy: string;
+        deploymentId: string;
+      }[];
+    };
     indexerEraDeploymentRewards: {
       groupedAggregates: {
         sum: {
@@ -51,6 +57,13 @@ const ScannerDashboard: FC<IProps> = (props) => {
           nodes {
             indexerId
             indexerApy
+          }
+        }
+
+        eraIndexerDeploymentApies(filter: { indexerId: { in: $indexers }, eraIdx: { equalTo: $era } }) {
+          nodes {
+            apy
+            deploymentId
           }
         }
 
@@ -126,6 +139,25 @@ const ScannerDashboard: FC<IProps> = (props) => {
       return 0;
     },
     [queriesOfDeployments.data],
+  );
+
+  const getApy = useCallback(
+    (curDeploymentId: string) => {
+      if (getIndexerRewardsInfos.data?.eraIndexerDeploymentApies?.nodes) {
+        return BigNumberJs(
+          formatSQT(
+            getIndexerRewardsInfos.data?.eraIndexerDeploymentApies?.nodes?.find(
+              (i) => i.deploymentId === curDeploymentId,
+            )?.apy || '0',
+          ),
+        )
+          .multipliedBy(100)
+          .toFixed(2);
+      }
+
+      return '0';
+    },
+    [getIndexerRewardsInfos.data],
   );
 
   return (
@@ -241,7 +273,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
       <div className={styles.dashboardInner}>
         <div className="flex" style={{ marginBottom: 24 }}>
           <Typography variant="large" weight={600}>
-            Projects ({indexerDeploymentsSorted.data?.length || 0})
+            Project Deployments({indexerDeploymentsSorted.data?.length || 0})
           </Typography>
         </div>
 
@@ -261,7 +293,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
               },
             },
             {
-              title: 'Stake',
+              title: 'Allocation Stake',
               dataIndex: 'allocatedAmount',
               key: 'allocatedAmount',
               render: (text: string) => (
@@ -272,7 +304,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
               sorter: (a, b) => BigNumberJs(a.allocatedAmount || '0').comparedTo(b.allocatedAmount || '0'),
             },
             {
-              title: 'Last Era Stake Rewards',
+              title: 'Stake Rewards',
               dataIndex: 'lastEraAllocatedRewards',
               key: 'lastEraAllocatedRewards',
               render: (text: string) => (
@@ -284,7 +316,14 @@ const ScannerDashboard: FC<IProps> = (props) => {
                 BigNumberJs(a.lastEraAllocatedRewards || '0').comparedTo(b.lastEraAllocatedRewards || '0'),
             },
             {
-              title: 'Last Era Query Rewards',
+              title: 'STAKE Apy',
+              dataIndex: 'deploymentId',
+              key: 'deploymentId',
+              render: (deploymentId: string) => <Typography>{getApy(deploymentId)}%</Typography>,
+              sorter: (a, b) => BigNumberJs(getApy(a.deploymentId || '')).comparedTo(getApy(b.deploymentId || '')),
+            },
+            {
+              title: 'Query Rewards',
               dataIndex: 'lastEraQueryRewards',
               key: 'lastEraQueryRewards',
               render: (text: string) => (
@@ -295,7 +334,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
               sorter: (a, b) => BigNumberJs(a.lastEraQueryRewards || '0').comparedTo(b.lastEraQueryRewards || '0'),
             },
             {
-              title: 'Last Era Queries',
+              title: 'Queries',
               dataIndex: 'deploymentId',
               key: 'deploymentId',
               render: (deploymentId: string) => (
@@ -305,6 +344,17 @@ const ScannerDashboard: FC<IProps> = (props) => {
                 BigNumberJs(getDeploymentQueries(a.deploymentId || '')).comparedTo(
                   getDeploymentQueries(b.deploymentId || ''),
                 ),
+            },
+            {
+              title: 'Burnt Rewards',
+              dataIndex: 'lastEraBurnt',
+              key: 'lastEraBurnt',
+              render: (text: string) => (
+                <Typography>
+                  {text ? formatNumber(formatSQT(text)) : '0.00'} {TOKEN}
+                </Typography>
+              ),
+              sorter: (a, b) => BigNumberJs(a.lastEraBurnt || '0').comparedTo(b.lastEraBurnt || '0'),
             },
             {
               title: 'Total Rewards',
