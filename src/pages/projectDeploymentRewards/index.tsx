@@ -111,6 +111,9 @@ const ScannerDashboard: FC<IProps> = (props) => {
 
         const deploymentQueryCount = queries.data?.find((i) => i.deployment === node.deploymentId);
 
+        const averageQueryRewards = BigNumberJs(totalQueryRewards)
+          .div(totalCount || 1)
+          .toFixed();
         return {
           deploymentId: node.deploymentId,
           projectMetadata: deploymentInfo?.project.metadata,
@@ -142,19 +145,16 @@ const ScannerDashboard: FC<IProps> = (props) => {
           allocationApy: allocationApy.isNaN() ? '0.00' : allocationApy.gt(1000) ? '1000+' : allocationApy.toFixed(2),
           rawAllocationApy: allocationApy.isNaN() ? '0.00' : allocationApy.toFixed(2),
           queryRewards: formatNumber(formatSQT(totalQueryRewards)),
-          averageQueryRewards: formatNumber(
+          averageQueryRewards: formatNumber(formatSQT(averageQueryRewards)),
+          rawAverageQueryRewards: formatSQT(averageQueryRewards),
+          rawTotalRewards: formatSQT(BigNumberJs(allocationRewards).plus(totalQueryRewards).toString()),
+          totalRewards: formatNumber(
             formatSQT(
-              BigNumberJs(totalQueryRewards)
-                .div(totalCount || 1)
-                .toFixed(),
+              BigNumberJs(allocationRewards)
+                .plus(statisticGroup === 'averageRewards' ? totalQueryRewards : averageQueryRewards)
+                .toString(),
             ),
           ),
-          rawAverageQueryRewards: formatSQT(
-            BigNumberJs(totalQueryRewards)
-              .div(totalCount || 1)
-              .toFixed(),
-          ),
-          totalRewards: formatNumber(formatSQT(BigNumberJs(allocationRewards).plus(totalQueryRewards).toString())),
           averageRewards: formatNumber(
             formatSQT(
               BigNumberJs(eraDeploymentRewardsItem?.sum.totalRewards || '0')
@@ -176,7 +176,12 @@ const ScannerDashboard: FC<IProps> = (props) => {
         };
       })
       .filter((i) => i.deploymentId.toLowerCase().includes(searchDeployment.toLowerCase()))
-      .sort((a, b) => BigNumberJs(b.rawAverageRewards).comparedTo(a.rawAverageRewards));
+      .sort((a, b) => {
+        if (statisticGroup === 'averageRewards') {
+          return BigNumberJs(b.rawAverageRewards).comparedTo(a.rawAverageRewards);
+        }
+        return BigNumberJs(b.rawTotalRewards).comparedTo(a.rawTotalRewards);
+      });
   }, [
     loading,
     allDeployments,
@@ -460,6 +465,9 @@ const ScannerDashboard: FC<IProps> = (props) => {
                   {text} {TOKEN}
                 </Typography>
               ),
+              sorter: (a: (typeof renderData)[number], b: (typeof renderData)[number]) => {
+                return BigNumberJs(a.rawAverageQueryRewards).comparedTo(b.rawAverageQueryRewards);
+              },
             },
             {
               title: 'Average Query Rewards',
@@ -483,6 +491,9 @@ const ScannerDashboard: FC<IProps> = (props) => {
                   {text} {TOKEN}
                 </Typography>
               ),
+              sorter: (a: (typeof renderData)[number], b: (typeof renderData)[number]) => {
+                return BigNumberJs(a.rawTotalRewards).comparedTo(b.rawTotalRewards);
+              },
             },
             {
               title: (
@@ -557,7 +568,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
             return {
               onClick: () => {
                 navigate(
-                  `/projects/${record.deploymentId}?projectMetadata=${record.projectMetadata}&projectId=${record.projectId}`,
+                  `/deployments/${record.deploymentId}?projectMetadata=${record.projectMetadata}&projectId=${record.projectId}`,
                 );
               },
             };

@@ -1,15 +1,14 @@
 import { FC, useEffect, useMemo, useState } from 'react';
 import { IoSearch } from 'react-icons/io5';
 import { useNavigate } from 'react-router';
-import { gql, useQuery } from '@apollo/client';
 import { IndexerName } from '@components/IndexerDetails/IndexerName';
 import { useAsyncMemo } from '@hooks/useAsyncMemo';
 import { useConsumerHostServices } from '@hooks/useConsumerHostServices';
 import { useEra } from '@hooks/useEra';
 import { CurrentEraValue, parseRawEraValue } from '@hooks/useEraValue';
+import { useGetAllNodeOperators } from '@hooks/useGetAllNodeOperators';
 import { Typography } from '@subql/components';
 import { formatNumber, formatSQT, TOKEN } from '@utils';
-import { usePrevious } from 'ahooks';
 import { Input, Select, Table } from 'antd';
 import BigNumberJs from 'bignumber.js';
 import dayjs from 'dayjs';
@@ -26,8 +25,8 @@ const ScannerDashboard: FC<IProps> = (props) => {
     autoLogin: false,
   });
   const [selectEra, setSelectEra] = useState<number>((currentEra.data?.index || 1) - 1 || 0);
-  const [searchDeployment, setSearchDeployment] = useState<string>('');
-  const debounceSearch = useMemo(() => debounce(setSearchDeployment, 500), [setSearchDeployment]);
+  const [searchNodeOperator, setSearchNodeOperator] = useState<string>('');
+  // const debounceSearch = useMemo(() => debounce(setSearchNodeOperator, 500), [setSearchNodeOperator]);
   const [pageInfo, setPageInfo] = useState({
     pageSize: 30,
     currentPage: 1,
@@ -43,89 +42,12 @@ const ScannerDashboard: FC<IProps> = (props) => {
     return currentEra.data.eras?.find((i) => parseInt(i.id, 16) === selectEra)?.createdBlock || '99999999999999999';
   }, [selectEra, currentEra.data?.index]);
 
-  const allIndexers = useQuery<{
-    indexers: {
-      nodes: { selfStake: CurrentEraValue; totalStake: CurrentEraValue; id: string }[];
-      totalCount: number;
-    };
-  }>(
-    gql`
-      query getAllIndexers($first: Int! = 30, $offset: Int! = 0, $indexerId: String = "", $blockHeight: String!) {
-        indexers(
-          blockHeight: $blockHeight
-          first: $first
-          offset: $offset
-          filter: { id: { includesInsensitive: $indexerId }, active: { equalTo: true } }
-          orderBy: TOTAL_STAKE_DESC
-        ) {
-          nodes {
-            selfStake
-            totalStake
-            id
-          }
-          totalCount
-        }
-      }
-    `,
-    {
-      variables: {
-        first: pageInfo.pageSize,
-        offset: (pageInfo.currentPage - 1) * pageInfo.pageSize,
-        indexerId: searchDeployment,
-        blockHeight: blockHeightOfQuery.toString(),
-      },
-    },
-  );
-
-  const indexerRewardsInfos = useQuery<{
-    eraIndexerApies: {
-      nodes: {
-        indexerId: string;
-        indexerApy: string;
-      }[];
-    };
-    indexerEraDeploymentRewards: {
-      groupedAggregates: {
-        sum: {
-          allocationRewards: string;
-          queryRewards: string;
-          totalRewards: string;
-        };
-        keys: string[];
-      }[];
-    };
-  }>(
-    gql`
-      query getIndexerRewardsInfos($indexers: [String!], $era: Int!) {
-        eraIndexerApies(filter: { eraIdx: { equalTo: $era }, indexerId: { in: $indexers } }) {
-          nodes {
-            indexerId
-            indexerApy
-          }
-        }
-
-        indexerEraDeploymentRewards(filter: { eraIdx: { equalTo: $era }, indexerId: { in: $indexers } }) {
-          groupedAggregates(groupBy: INDEXER_ID) {
-            sum {
-              allocationRewards
-              queryRewards
-              totalRewards
-            }
-            keys
-          }
-        }
-      }
-    `,
-    {
-      variables: {
-        era: selectEra,
-        indexers: allIndexers.data?.indexers.nodes.map((node) => node.id) || [],
-      },
-    },
-  );
+  const { allNodeOperators, allNodeOperatorInformations, loading } = useGetAllNodeOperators({
+    selectEra,
+  });
 
   const queriesOfAllIndexers = useAsyncMemo(async () => {
-    if (!allIndexers.data?.indexers.nodes.length || !currentEra.data?.index) {
+    if (!allNodeOperators?.nodes.length || !currentEra.data?.index) {
       return [];
     }
 
@@ -136,20 +58,20 @@ const ScannerDashboard: FC<IProps> = (props) => {
     const endDate = selectEraInfo?.endTime ? dayjs(selectEraInfo?.endTime || '0').format('YYYY-MM-DD') : undefined;
 
     const queries = await getStatisticQueries({
-      indexer: allIndexers.data?.indexers.nodes.map((node) => node.id.toLowerCase()) || [],
+      indexer: allNodeOperators?.nodes.map((node) => node.id.toLowerCase()) || [],
       start_date: startDate,
       end_date: endDate,
     });
 
     return queries?.data?.list;
-  }, [currentEra.data?.index, allIndexers.data, selectEra]);
+  }, [currentEra.data?.index, allNodeOperators?.nodes, selectEra]);
 
   const renderData = useMemo(() => {
-    if (!allIndexers.data?.indexers.nodes.length || !indexerRewardsInfos.data) {
+    if (loading || !allNodeOperators?.nodes.length || !allNodeOperatorInformations) {
       return [];
     }
 
-    const indexerRewardsMap = indexerRewardsInfos.data?.indexerEraDeploymentRewards.groupedAggregates.reduce(
+    const indexerRewardsMap = allNodeOperatorInformations.indexerEraDeploymentRewards.groupedAggregates.reduce(
       (acc, cur) => {
         acc[cur.keys[0]] = cur.sum;
         return acc;
@@ -157,32 +79,37 @@ const ScannerDashboard: FC<IProps> = (props) => {
       {} as Record<string, { allocationRewards: string; queryRewards: string; totalRewards: string }>,
     );
 
-    return allIndexers.data.indexers.nodes.map((indexer) => {
-      const indexerRewards = indexerRewardsMap[indexer.id];
-      const apy = indexerRewardsInfos.data?.eraIndexerApies.nodes.find(
-        (node) => node.indexerId === indexer.id,
-      )?.indexerApy;
+    return allNodeOperators?.nodes
+      .map((indexer) => {
+        const indexerRewards = indexerRewardsMap[indexer.id];
+        const apy = allNodeOperatorInformations?.eraIndexerApies.nodes.find(
+          (node) => node.indexerId === indexer.id,
+        )?.indexerApy;
 
-      const totalStake = parseRawEraValue(indexer.totalStake, selectEra).current.toString();
-      const selfStake = parseRawEraValue(indexer.selfStake, selectEra).current.toString();
-      const queries = queriesOfAllIndexers.data?.find((i) => i.indexer?.toLowerCase() === indexer.id.toLowerCase());
+        const totalStake = parseRawEraValue(indexer.totalStake, selectEra).current.toString();
+        const selfStake = parseRawEraValue(indexer.selfStake, selectEra).current.toString();
+        const queries = queriesOfAllIndexers.data?.find((i) => i.indexer?.toLowerCase() === indexer.id.toLowerCase());
 
-      return {
-        ...indexer,
-        totalStake: formatNumber(formatSQT(totalStake || '0')),
-        selfStake: formatNumber(formatSQT(selfStake || '0')),
-        delegationStake: formatNumber(formatSQT(BigNumberJs(totalStake).minus(selfStake).toString())),
-        allocationRewards: formatNumber(formatSQT(BigNumberJs(indexerRewards?.allocationRewards || 0).toString())),
-        queryRewards: formatNumber(formatSQT(BigNumberJs(indexerRewards?.queryRewards || 0).toString())),
-        queries: BigNumberJs(queries?.queries || 0).toFixed(0),
-        apy: BigNumberJs(formatSQT(apy || '0'))
-          .multipliedBy(100)
-          .toFixed(2),
-      };
-    });
-  }, [allIndexers.data, indexerRewardsInfos.data, selectEra, queriesOfAllIndexers]);
-
-  const previousRenderData = usePrevious(renderData);
+        return {
+          ...indexer,
+          rawTotalStake: totalStake,
+          totalStake: formatNumber(formatSQT(totalStake || '0')),
+          rawSelfStake: selfStake,
+          selfStake: formatNumber(formatSQT(selfStake || '0')),
+          delegationStake: formatNumber(formatSQT(BigNumberJs(totalStake).minus(selfStake).toString())),
+          rawDelegationStake: BigNumberJs(totalStake).minus(selfStake).toString(),
+          allocationRewards: formatNumber(formatSQT(BigNumberJs(indexerRewards?.allocationRewards || 0).toString())),
+          rawAllocationRewards: BigNumberJs(indexerRewards?.allocationRewards || 0).toString(),
+          queryRewards: formatNumber(formatSQT(BigNumberJs(indexerRewards?.queryRewards || 0).toString())),
+          rawQueryRewards: BigNumberJs(indexerRewards?.queryRewards || 0).toString(),
+          queries: BigNumberJs(queries?.queries || 0).toFixed(0),
+          apy: BigNumberJs(formatSQT(apy || '0'))
+            .multipliedBy(100)
+            .toFixed(2),
+        };
+      })
+      .filter((i) => i.id.toLowerCase().includes(searchNodeOperator.toLowerCase()));
+  }, [allNodeOperators, allNodeOperatorInformations, selectEra, queriesOfAllIndexers, loading, searchNodeOperator]);
 
   useEffect(() => {
     if (currentEra.data?.index) {
@@ -195,7 +122,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
       <div className={styles.dashboardInner}>
         <div className="flex" style={{ marginBottom: 24 }}>
           <Typography variant="large" weight={600}>
-            Node Operators ({allIndexers.data?.indexers.totalCount ?? allIndexers.previousData?.indexers.totalCount})
+            Node Operators ({allNodeOperators?.totalCount})
           </Typography>
         </div>
 
@@ -219,7 +146,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
             placeholder="Search by address"
             prefix={<IoSearch />}
             onChange={(e) => {
-              debounceSearch(e.target.value);
+              setSearchNodeOperator(e.target.value);
             }}
           ></Input>
         </div>
@@ -227,7 +154,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
         <Table
           rowKey={(record) => record.id}
           className={'darkTable'}
-          loading={allIndexers.loading || indexerRewardsInfos.loading}
+          loading={loading}
           columns={[
             {
               title: 'Node Operators',
@@ -250,6 +177,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
               dataIndex: 'apy',
               key: 'apy',
               render: (text: string) => <Typography>{text} %</Typography>,
+              sorter: (a, b) => BigNumberJs(a.apy).comparedTo(b.apy),
             },
             {
               title: 'Stake',
@@ -260,6 +188,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
                   {text} {TOKEN}
                 </Typography>
               ),
+              sorter: (a, b) => BigNumberJs(a.rawTotalStake).comparedTo(b.rawTotalStake),
             },
             {
               title: 'Self Stake',
@@ -270,32 +199,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
                   {text} {TOKEN}
                 </Typography>
               ),
-            },
-            {
-              title: 'Stake Rewards',
-              dataIndex: 'allocationRewards',
-              key: 'allocationRewards',
-              render: (text: string) => (
-                <Typography>
-                  {text} {TOKEN}
-                </Typography>
-              ),
-            },
-            {
-              title: 'Total Query Rewards',
-              dataIndex: 'queryRewards',
-              key: 'queryRewards',
-              render: (text: string) => (
-                <Typography>
-                  {text} {TOKEN}
-                </Typography>
-              ),
-            },
-            {
-              title: 'Queries',
-              dataIndex: 'queries',
-              key: 'queries',
-              render: (text: string) => <Typography>{formatNumber(text, 0)}</Typography>,
+              sorter: (a, b) => BigNumberJs(a.rawSelfStake).comparedTo(b.rawSelfStake),
             },
             {
               title: 'Delegation',
@@ -306,11 +210,41 @@ const ScannerDashboard: FC<IProps> = (props) => {
                   {text} {TOKEN}
                 </Typography>
               ),
+              sorter: (a, b) => BigNumberJs(a.rawDelegationStake).comparedTo(b.rawDelegationStake),
+            },
+            {
+              title: 'Queries',
+              dataIndex: 'queries',
+              key: 'queries',
+              render: (text: string) => <Typography>{formatNumber(text, 0)}</Typography>,
+              sorter: (a, b) => BigNumberJs(a.queries).comparedTo(b.queries),
+            },
+            {
+              title: 'Total Query Rewards',
+              dataIndex: 'queryRewards',
+              key: 'queryRewards',
+              render: (text: string) => (
+                <Typography>
+                  {text} {TOKEN}
+                </Typography>
+              ),
+              sorter: (a, b) => BigNumberJs(a.rawQueryRewards).comparedTo(b.rawQueryRewards),
+            },
+            {
+              title: 'Stake Rewards',
+              dataIndex: 'allocationRewards',
+              key: 'allocationRewards',
+              render: (text: string) => (
+                <Typography>
+                  {text} {TOKEN}
+                </Typography>
+              ),
+              sorter: (a, b) => BigNumberJs(a.rawAllocationRewards).comparedTo(b.rawAllocationRewards),
             },
           ]}
-          dataSource={renderData?.length ? renderData : previousRenderData}
+          dataSource={renderData}
           pagination={{
-            total: allIndexers.data?.indexers.totalCount || allIndexers.previousData?.indexers.totalCount,
+            total: renderData.length,
             pageSize: pageInfo.pageSize,
             pageSizeOptions: ['10', '30', '50', '100'],
             current: pageInfo.currentPage,

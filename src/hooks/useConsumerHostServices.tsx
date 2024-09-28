@@ -182,7 +182,7 @@ export const useConsumerHostServices = (
   );
 
   const getProjects = useCallback(async (params: { projectId: string; deployment?: string }) => {
-    const res = await instance.get<{ indexers: IIndexerFlexPlan[] }>(`/projects/${params.projectId}`, {
+    const res = await instance.get<{ indexers: IIndexerFlexPlan[] }>(`/deployments/${params.projectId}`, {
       headers: authHeaders.current,
       params,
     });

@@ -13,11 +13,11 @@ export const scannerRouters: BasicRouteType[] = [
   { path: '/', redirect: '/dashboard' },
   { path: '/dashboard', component: React.lazy(() => import('../pages/dashboard/index')) },
   {
-    path: '/projects',
+    path: '/deployments',
     component: React.lazy(() => import('../pages/projectDeploymentRewards/index')),
   },
   {
-    path: '/projects/:id',
+    path: '/deployments/:id',
     component: React.lazy(() => import('../pages/projectDetail/index')),
   },
   {

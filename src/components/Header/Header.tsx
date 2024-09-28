@@ -58,7 +58,7 @@ export const ScannerHeader: React.FC = () => {
             },
           },
           {
-            link: '/projects',
+            link: '/deployments',
             // @ts-ignore
             label: (
               <span className="flex" style={{ gap: 4 }}>
@@ -67,7 +67,7 @@ export const ScannerHeader: React.FC = () => {
               </span>
             ),
             active: () => {
-              return window.location.pathname.includes('projects');
+              return window.location.pathname.includes('deployments');
             },
           },
           {

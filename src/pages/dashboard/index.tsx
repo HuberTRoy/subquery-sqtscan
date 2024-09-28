@@ -136,11 +136,12 @@ const ScannerDashboard: FC<IProps> = (props) => {
       <div className={styles.dashboardInner}>
         <div className="flex" style={{ marginBottom: 24 }}>
           <Typography variant="large" weight={600}>
-            Top 5 Project Rewards {currentEra.data?.index ? `(Previous Era ${currentEra.data?.index - 1})` : ''}
+            Top 5 Project Deployment Rewards{' '}
+            {currentEra.data?.index ? `(Previous Era ${currentEra.data?.index - 1})` : ''}
           </Typography>
           <span style={{ flex: 1 }}></span>
           <Button type="primary" shape="round">
-            <Link to="/projects">View All Projects</Link>
+            <Link to="/deployments">View All Projects</Link>
           </Button>
         </div>
 
@@ -150,7 +151,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
           loading={loading}
           columns={[
             {
-              title: 'Project',
+              title: 'Project Deployment',
               dataIndex: 'name',
               key: 'name',
               render: (_, record) => {
@@ -183,16 +184,6 @@ const ScannerDashboard: FC<IProps> = (props) => {
               ),
             },
             {
-              title: 'Total Stake Rewards',
-              dataIndex: 'allocationRewards',
-              key: 'allocationRewards',
-              render: (text: string) => (
-                <Typography>
-                  {text} {TOKEN}
-                </Typography>
-              ),
-            },
-            {
               title: 'Average Stake Rewards',
               dataIndex: 'averageAllocationRewards',
               key: 'averageAllocationRewards',
@@ -209,41 +200,15 @@ const ScannerDashboard: FC<IProps> = (props) => {
               render: (text: string) => <Typography>{text} %</Typography>,
             },
             {
-              title: 'Total Queries',
-              dataIndex: 'queries',
-              key: 'queries',
-              render: (text: string) => <Typography>{text}</Typography>,
-            },
-            {
               title: 'Average Queries',
               dataIndex: 'averageQueries',
               key: 'averageQueries',
               render: (text: string) => <Typography>{text}</Typography>,
             },
             {
-              title: 'Total Query Rewards',
-              dataIndex: 'queryRewards',
-              key: 'queryRewards',
-              render: (text: string) => (
-                <Typography>
-                  {text} {TOKEN}
-                </Typography>
-              ),
-            },
-            {
               title: 'Average Query Rewards',
               dataIndex: 'averageQueryRewards',
               key: 'averageQueryRewards',
-              render: (text: string) => (
-                <Typography>
-                  {text} {TOKEN}
-                </Typography>
-              ),
-            },
-            {
-              title: 'Total Rewards',
-              dataIndex: 'totalRewards',
-              key: 'totalRewards',
               render: (text: string) => (
                 <Typography>
                   {text} {TOKEN}
@@ -264,7 +229,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
           onRow={(record) => {
             return {
               onClick: () => {
-                navigate(`/projects/${record.deploymentId}?projectMetadata=${record.projectMetadata}`);
+                navigate(`/deployments/${record.deploymentId}?projectMetadata=${record.projectMetadata}`);
               },
             };
           }}
