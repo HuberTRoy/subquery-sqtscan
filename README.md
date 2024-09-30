@@ -1,12 +1,14 @@
 # SubQuery Network Scanner
 
 This is a community built and operated dApp for Node Operators and Delegators to understand and better interact with
-SubQuery Network. You can find this at [https://subquery-scanner.vercel.app/](https://subquery-scanner.vercel.app/).
+SubQuery Network. You can find this at [https://sqtscan.com/](https://sqtscan.com/).
 
 ## Run this application
 
 You can run this application by installing dependencies (e.g. `yarn` or `npm i`) and then running in development mode
 (e.g. `yarn dev` or `npm run dev`).
+
+**Note:** Using npm might result in more errors due to poor dependency management.
 
 ## Contributing
 
@@ -33,3 +35,4 @@ We welcome contributions from the community to this community application! To co
 
 - [HuberTRoy](https://github.com/HuberTRoy)
 - [JamesBayly](https://github.com/jamesbayly)
+- [PhanDucHuy](https://github.com/duchuytb9x)
