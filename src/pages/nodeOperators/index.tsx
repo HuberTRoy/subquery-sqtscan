@@ -2,6 +2,7 @@ import { FC, useEffect, useMemo, useState } from 'react';
 import { IoSearch } from 'react-icons/io5';
 import { useNavigate } from 'react-router';
 import { IndexerName } from '@components/IndexerDetails/IndexerName';
+import IndexerRewards from '@components/IndexerRewards';
 import { useAsyncMemo } from '@hooks/useAsyncMemo';
 import { useConsumerHostServices } from '@hooks/useConsumerHostServices';
 import { useEra } from '@hooks/useEra';
@@ -127,19 +128,24 @@ const ScannerDashboard: FC<IProps> = (props) => {
         </div>
 
         <div className="flex" style={{ marginBottom: 24, gap: 24 }}>
-          {/* <Select
+          <Select
             className="darkSelector"
             style={{ width: 200 }}
             value={selectEra}
-            options={new Array((currentEra.data?.index || 0) + 1 || 0).fill(0).map((_, index) => ({
-              label: `Era ${index}`,
-              value: index,
-            }))}
+            //Add options to select previous eras
+            //Order: Current Era, Previous Era 1, Previous Era 2, ...
+            options={[
+              { label: `Current Era ${currentEra.data?.index}`, value: currentEra.data?.index }, // Thêm giá trị currentEra lên đầu
+              ...new Array(currentEra.data?.index || 0).fill(0).map((_, index, arr) => ({
+                label: `Previous Era ${arr.length - 1 - index}`,
+                value: arr.length - 1 - index,
+              })),
+            ]}
             onChange={(value) => {
               setSelectEra(value);
             }}
             loading={currentEra.loading}
-          ></Select> */}
+          ></Select>
           <Input
             className="darkInput"
             style={{ width: 342 }}
@@ -149,6 +155,12 @@ const ScannerDashboard: FC<IProps> = (props) => {
               setSearchNodeOperator(e.target.value);
             }}
           ></Input>
+        </div>
+
+        <div className={styles.dashboard} style={{ padding: '0px', paddingBottom: '24px' }}>
+          <div className={styles.dashboardInner}>
+            <IndexerRewards era={selectEra} deploymentId={searchNodeOperator} />
+          </div>
         </div>
 
         <Table
