@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { gql, useLazyQuery } from '@apollo/client';
-import { formatNumber, formatSQT } from '@utils';
+import { formatNumber, formatSQT, truncateAddress } from '@utils';
 import BigNumberJs from 'bignumber.js';
 import Highcharts from 'highcharts';
 
@@ -192,7 +192,7 @@ const darkTheme = {
 };
 
 const FETCH_REWARDS_QUERY = gql`
-  query MyQuery($eraId: BigFloat!, $era: String, $eraIdx: Int) {
+  query MyQuery($eraId: BigFloat!, $eraIdx: Int) {
     indexerRewards(filter: { eraId: { equalTo: $eraId } }) {
       edges {
         node {
@@ -203,13 +203,14 @@ const FETCH_REWARDS_QUERY = gql`
       }
       nodes {
         indexer {
-          indexerStakes(filter: { eraId: { equalTo: $era } }) {
+          indexerStakes(filter: { eraIdx: { equalTo: $eraIdx } }) {
             groupedAggregates(groupBy: INDEXER_ID) {
               sum {
                 indexerStake
                 delegatorStake
                 totalStake
               }
+              keys
             }
           }
           indexerApySummaries(filter: { eraIdx: { equalTo: $eraIdx } }) {
@@ -240,9 +241,9 @@ const IndexerRewards: React.FC<IndexerRewardsProps> = ({ era, deploymentId }) =>
     indexerRewards: {
       edges: {
         node: {
-          amount: string;
-          eraId: string;
           indexerId: string;
+          eraId: string;
+          amount: string;
         };
       }[];
       nodes: {
@@ -283,23 +284,25 @@ const IndexerRewards: React.FC<IndexerRewardsProps> = ({ era, deploymentId }) =>
   }, [era, deploymentId]);
 
   useEffect(() => {
-    fetchRewards({ variables: { eraId, era: era.toString(), eraIdx: era } });
+    fetchRewards({ variables: { eraId, eraIdx: era } });
   }, [eraId, fetchRewards]);
 
   useEffect(() => {
     if (rewardsData) {
+      console.log('RewardsData' + rewardsData);
       const transformedData = transformRewardsData(rewardsData);
       const chartData: ChartData[] = transformedData.map((data) => ({
-        name: data.indexerId,
-        totalStake: Number(data.totalStake),
-        indexerStake: Number(data.indexerStake),
-        delegatorStake: Number(data.delegatorStake),
-        totalReward: Number(data.amount),
-        indexerReward: Number(data.indexerReward),
-        delegatorReward: Number(data.delegatorReward),
-        indexerApy: Number(data.indexerApy),
-        delegatorApy: Number(data.delegatorApy),
+        name: truncateAddress(data.indexerId),
+        totalStake: parseFloat(data.totalStake ?? '0') / Math.pow(10, 18),
+        indexerStake: parseFloat(data.indexerStake ?? '0') / Math.pow(10, 18),
+        delegatorStake: parseFloat(data.delegatorStake ?? '0') / Math.pow(10, 18),
+        totalReward: parseFloat(data.amount ?? '0') / Math.pow(10, 18),
+        indexerReward: parseFloat(data.indexerReward ?? '0') / Math.pow(10, 18),
+        delegatorReward: parseFloat(data.delegatorReward ?? '0') / Math.pow(10, 18),
+        indexerApy: parseFloat(data.indexerApy ?? '0') / Math.pow(10, 16),
+        delegatorApy: parseFloat(data.delegatorApy ?? '0') / Math.pow(10, 16),
       }));
+      console.log(chartData);
       setChartData(chartData);
       renderChart(chartData);
     }
@@ -324,61 +327,75 @@ const IndexerRewards: React.FC<IndexerRewardsProps> = ({ era, deploymentId }) =>
       return [];
     }
 
-    const transformedData: TransformedReward[] = [];
+    const data = rewardsData.indexerRewards;
+    let rewards = data.edges.map((edge) => edge.node);
+    let indexerDetails = data.nodes.map((node) => node.indexer);
 
-    rewardsData.indexerRewards.edges.forEach((edge) => {
-      const { amount, eraId, indexerId } = edge.node;
-      const transformedReward: TransformedReward = {
-        indexerId,
-        eraId,
-        amount: formatNumber(formatSQT(new BigNumberJs(amount).toString())).toString(),
+    let dataSource = rewards.map((reward) => {
+      const indexerDetail = indexerDetails.find((indexer) => {
+        const groupedAggregatesStakes = indexer.indexerStakes.groupedAggregates;
+        const groupedAggregatesApy = indexer.indexerApySummaries.groupedAggregates;
+
+        console.log('groupedAggregatesStakes: ' + JSON.stringify(groupedAggregatesStakes));
+        console.log('groupedAggregatesApy: ' + JSON.stringify(groupedAggregatesApy));
+
+        const hasValidGroupedAggregatesStakes =
+          groupedAggregatesStakes &&
+          groupedAggregatesStakes.length > 0 &&
+          groupedAggregatesStakes[0].keys &&
+          groupedAggregatesStakes[0].keys.includes(reward.indexerId);
+        const hasValidGroupedAggregatesApy =
+          groupedAggregatesApy &&
+          groupedAggregatesApy.length > 0 &&
+          groupedAggregatesApy[0].keys &&
+          groupedAggregatesApy[0].keys.includes(reward.indexerId);
+
+        if (!hasValidGroupedAggregatesStakes) {
+          console.log(`Invalid groupedAggregatesStakes for indexerId: ${reward.indexerId}`);
+        }
+        if (!hasValidGroupedAggregatesApy) {
+          console.log(`Invalid groupedAggregatesApy for indexerId: ${reward.indexerId}`);
+        }
+
+        return hasValidGroupedAggregatesStakes || hasValidGroupedAggregatesApy;
+      });
+
+      console.log('indexerDetail: ' + JSON.stringify(indexerDetail));
+      const indexerStake = indexerDetail?.indexerStakes?.groupedAggregates[0]?.sum?.indexerStake || '0';
+      const delegatorStake = indexerDetail?.indexerStakes?.groupedAggregates[0]?.sum?.delegatorStake || '0';
+      const totalStake = indexerDetail?.indexerStakes?.groupedAggregates[0]?.sum?.totalStake || '0';
+
+      const indexerAggregate =
+        indexerDetail?.indexerApySummaries?.groupedAggregates.find(
+          (aggregate) => aggregate.keys.includes(reward.indexerId) && aggregate.sum.eraIdx === reward.eraId,
+        ) || {};
+
+      const indexerReward = (indexerAggregate as any)?.sum?.indexerReward || '0';
+      const delegatorReward = (indexerAggregate as any)?.sum?.delegatorReward || '0';
+      const totalReward = Number(indexerReward) + Number(delegatorReward);
+      const indexerApy = (indexerAggregate as any)?.sum?.indexerApy || '0';
+      const delegatorApy = (indexerAggregate as any)?.sum?.delegatorApy || '0';
+
+      return {
+        indexerId: reward.indexerId,
+        eraId: reward.eraId,
+        amount: reward.amount,
+        name: reward.indexerId,
+        y: parseFloat(reward.amount) / Math.pow(10, 18),
+        totalStake: totalStake,
+        indexerStake: indexerStake,
+        delegatorStake: delegatorStake,
+        indexerReward: indexerReward,
+        delegatorReward: delegatorReward,
+        totalReward: totalReward,
+        indexerApy: indexerApy,
+        delegatorApy: delegatorApy,
       };
-
-      const indexerNode = rewardsData.indexerRewards.nodes.find((node) =>
-        node.indexer.indexerStakes.groupedAggregates.some((agg) => agg.keys.includes(indexerId)),
-      );
-
-      if (indexerNode) {
-        const indexerStakeAggregate = indexerNode.indexer.indexerStakes.groupedAggregates.find((agg) =>
-          agg.keys.includes(indexerId),
-        );
-        const indexerApyAggregate = indexerNode.indexer.indexerApySummaries.groupedAggregates.find((agg) =>
-          agg.keys.includes(indexerId),
-        );
-
-        if (indexerStakeAggregate) {
-          transformedReward.indexerStake = formatNumber(
-            formatSQT(new BigNumberJs(indexerStakeAggregate.sum.indexerStake).toString()),
-          ).toString();
-          transformedReward.delegatorStake = formatNumber(
-            formatSQT(new BigNumberJs(indexerStakeAggregate.sum.delegatorStake).toString()),
-          ).toString();
-          transformedReward.totalStake = formatNumber(
-            formatSQT(new BigNumberJs(indexerStakeAggregate.sum.totalStake).toString()),
-          ).toString();
-        }
-
-        if (indexerApyAggregate) {
-          transformedReward.delegatorApy = formatNumber(
-            formatSQT(new BigNumberJs(indexerApyAggregate.sum.delegatorApy).toString()),
-          ).toString();
-          transformedReward.delegatorReward = formatNumber(
-            formatSQT(new BigNumberJs(indexerApyAggregate.sum.delegatorReward).toString()),
-          ).toString();
-          transformedReward.indexerReward = formatNumber(
-            formatSQT(new BigNumberJs(indexerApyAggregate.sum.indexerReward).toString()),
-          ).toString();
-          transformedReward.indexerApy = formatNumber(
-            formatSQT(new BigNumberJs(indexerApyAggregate.sum.indexerApy).toString()),
-          ).toString();
-          transformedReward.eraIdx = indexerApyAggregate.sum.eraIdx; // eraIdx có thể không cần định dạng
-        }
-      }
-
-      transformedData.push(transformedReward);
     });
 
-    return transformedData;
+    console.log('dataSource: ' + JSON.stringify(dataSource));
+
+    return dataSource;
   }
 
   const renderChart = (data: ChartData[]): void => {
@@ -387,18 +404,27 @@ const IndexerRewards: React.FC<IndexerRewardsProps> = ({ era, deploymentId }) =>
     Highcharts.chart('container', {
       chart: {
         type: chartType,
+        height: 600, // Đặt chiều cao của biểu đồ thành 600px
       },
       title: {
-        text: 'Indexer Rewards Chart',
+        text: 'Node Operator and Delegator APY Era ' + eraId,
       },
       xAxis: {
         categories: data.map((d) => d.name),
       },
-      yAxis: {
-        title: {
-          text: 'Values',
+      yAxis: [
+        {
+          title: {
+            text: 'SQT',
+          },
         },
-      },
+        {
+          title: {
+            text: 'APY',
+          },
+          opposite: true,
+        },
+      ],
       credits: {
         enabled: false,
       },
@@ -430,10 +456,14 @@ const IndexerRewards: React.FC<IndexerRewardsProps> = ({ era, deploymentId }) =>
         {
           name: 'Indexer APY',
           data: data.map((d) => d.indexerApy),
+          yAxis: 1,
+          type: 'line',
         },
         {
           name: 'Delegator APY',
           data: data.map((d) => d.delegatorApy),
+          yAxis: 1,
+          type: 'line',
         },
       ],
     });
