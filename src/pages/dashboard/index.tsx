@@ -70,7 +70,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
         const deploymentQueryCount = queries.data?.find((i) => i.deployment === node.deploymentId);
 
         const apy = BigNumberJs(allocationRewards)
-          .div(totalAllocation === '0' ? '1' : totalAllocation)
+          .div(totalAllocation === '0' ? '0.0001' : totalAllocation)
           .multipliedBy(52)
           .multipliedBy(100);
 
@@ -94,7 +94,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
                 .toFixed(),
             ),
           ),
-          allocationApy: apy.gt(1000) ? '1000+' : apy.toFixed(2),
+          allocationApy: apy.gt(1000) ? 'N/A' : apy.toFixed(2), // When the stake is 0, then APY goes infinite
           queryRewards: formatNumber(formatSQT(totalQueryRewards)),
           averageQueryRewards: formatNumber(
             formatSQT(
@@ -197,7 +197,11 @@ const ScannerDashboard: FC<IProps> = (props) => {
               title: 'Stake Apy',
               dataIndex: 'allocationApy',
               key: 'allocationApy',
-              render: (text: string) => <Typography>{text} %</Typography>,
+              render: (text: string) => (
+                <Typography>
+                  {text} {text === 'N/A' ? '' : '%'}
+                </Typography>
+              ),
             },
             {
               title: 'Average Queries',
