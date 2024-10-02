@@ -40,6 +40,7 @@ const FETCH_REWARDS_QUERY = gql`
                 delegatorStake
                 totalStake
               }
+              keys
             }
           }
           indexerApySummaries(filter: { eraIdx: { equalTo: $eraIdx }, indexerId: { includes: $indexerId } }) {
@@ -249,7 +250,9 @@ const IndexerRewards: React.FC<IndexerRewardsProps> = ({ era, indexerId }) => {
             const indexerId = params[0].axisValue; // Lấy giá trị của trục X
             let tooltipContent = `Indexer: ${indexerId}<br/>`; // Thêm dòng "Indexer" với giá trị indexerId trên đầu
             params.forEach((param) => {
-              const value = param.seriesName.includes('APY') ? `${param.value}%` : param.value;
+              const value = param.seriesName.includes('APY')
+                ? `${formatNumber(param.value)}%`
+                : formatNumber(param.value);
               tooltipContent += `${param.marker} ${param.seriesName}: ${value}<br/>`;
             });
             return tooltipContent;
