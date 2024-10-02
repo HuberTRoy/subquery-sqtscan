@@ -117,7 +117,6 @@ const IndexerRewards: React.FC<IndexerRewardsProps> = ({ era, indexerId }) => {
 
   useEffect(() => {
     if (rewardsData) {
-      console.log('RewardsData' + rewardsData);
       const transformedData = transformRewardsData(rewardsData);
       const chartData: ChartData[] = transformedData.map((data) => ({
         name: truncateAddress(data.indexerId),
@@ -130,7 +129,6 @@ const IndexerRewards: React.FC<IndexerRewardsProps> = ({ era, indexerId }) => {
         indexerApy: parseFloat(data.indexerApy ?? '0') / Math.pow(10, 16),
         delegatorApy: parseFloat(data.delegatorApy ?? '0') / Math.pow(10, 16),
       }));
-      console.log('chartData: ' + chartData);
       setChartData(chartData);
       renderChart(chartData);
     }
@@ -163,10 +161,6 @@ const IndexerRewards: React.FC<IndexerRewardsProps> = ({ era, indexerId }) => {
       const indexerDetail = indexerDetails.find((indexer) => {
         const groupedAggregatesStakes = indexer.indexerStakes.groupedAggregates;
         const groupedAggregatesApy = indexer.indexerApySummaries.groupedAggregates;
-
-        console.log('groupedAggregatesStakes: ' + JSON.stringify(groupedAggregatesStakes));
-        console.log('groupedAggregatesApy: ' + JSON.stringify(groupedAggregatesApy));
-
         const hasValidGroupedAggregatesStakes =
           groupedAggregatesStakes &&
           groupedAggregatesStakes.length > 0 &&
@@ -177,18 +171,8 @@ const IndexerRewards: React.FC<IndexerRewardsProps> = ({ era, indexerId }) => {
           groupedAggregatesApy.length > 0 &&
           groupedAggregatesApy[0].keys &&
           groupedAggregatesApy[0].keys.includes(reward.indexerId);
-
-        if (!hasValidGroupedAggregatesStakes) {
-          console.log(`Invalid groupedAggregatesStakes for indexerId: ${reward.indexerId}`);
-        }
-        if (!hasValidGroupedAggregatesApy) {
-          console.log(`Invalid groupedAggregatesApy for indexerId: ${reward.indexerId}`);
-        }
-
         return hasValidGroupedAggregatesStakes || hasValidGroupedAggregatesApy;
       });
-
-      console.log('indexerDetail: ' + JSON.stringify(indexerDetail));
       const indexerStake = indexerDetail?.indexerStakes?.groupedAggregates[0]?.sum?.indexerStake || '0';
       const delegatorStake = indexerDetail?.indexerStakes?.groupedAggregates[0]?.sum?.delegatorStake || '0';
       const totalStake = indexerDetail?.indexerStakes?.groupedAggregates[0]?.sum?.totalStake || '0';
@@ -220,9 +204,6 @@ const IndexerRewards: React.FC<IndexerRewardsProps> = ({ era, indexerId }) => {
         delegatorApy: delegatorApy,
       };
     });
-
-    console.log('dataSource: ' + JSON.stringify(dataSource));
-
     return dataSource;
   }
 
