@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { gql, useLazyQuery } from '@apollo/client';
-import { formatNumber, formatSQT, truncateAddress } from '@utils';
-import BigNumberJs from 'bignumber.js';
+import { formatNumber, truncateAddress } from '@utils';
 import * as echarts from 'echarts';
 
 interface IndexerRewardsProps {
