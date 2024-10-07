@@ -30,6 +30,14 @@ const RenderRouter: React.FC = () => {
         <ScannerHeader></ScannerHeader>
         <ScannerRouterComponent></ScannerRouterComponent>
       </div>
+      <div className="footer">
+        <p>
+          Made with ❤️ by the SubQuery Community -{' '}
+          <a href="https://github.com/HuberTRoy/subquery-sqtscan" target="_blank" rel="noreferrer">
+            Contribute on GitHub
+          </a>
+        </p>
+      </div>
     </BrowserRouter>
   );
 };

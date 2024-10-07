@@ -12,7 +12,7 @@ You can run this application by installing dependencies (e.g. `yarn` or `npm i`)
 
 ## Contributing
 
-We welcome contributions from the community to this community application! To contribute:
+We welcome contributions from the community to this community application! You can find a bunch of tasks and ideas for improvements in the [issues list](https://github.com/HuberTRoy/subquery-sqtscan/issues). To contribute:
 
 1. **Fork the Repository**: Click the "Fork" button at the top right of this repository's page to create a copy of the
    repository under your GitHub account.
