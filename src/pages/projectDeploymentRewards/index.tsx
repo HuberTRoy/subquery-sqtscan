@@ -173,6 +173,9 @@ const ScannerDashboard: FC<IProps> = (props) => {
               .toString(),
             0,
           ),
+          rawAverageQueriesCount: BigNumberJs(deploymentQueryCount?.queries || '0')
+            .div(totalCount || 1)
+            .toString(),
         };
       })
       .filter((i) => i.deploymentId.toLowerCase().includes(searchDeployment.toLowerCase()))
@@ -457,7 +460,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
               key: 'averageQueriesCount',
               render: (text: string) => <Typography>{text}</Typography>,
               sorter: (a: (typeof renderData)[number], b: (typeof renderData)[number]) => {
-                return BigNumberJs(a.averageQueriesCount).comparedTo(b.averageQueriesCount);
+                return BigNumberJs(a.rawAverageQueriesCount).comparedTo(b.rawAverageQueriesCount);
               },
             },
             {
