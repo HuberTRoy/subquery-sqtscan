@@ -8,7 +8,7 @@ import { SubqlProvider } from '@subql/components';
 import { IPFSProvider, ProjectMetadataProvider, QueryApolloProvider } from './containers';
 import { ScannerRouterComponent } from './router';
 
-import './App.css';
+import './App.less';
 
 // TODO: Remove SQTProvider
 const Providers: React.FC<PropsWithChildren> = ({ children }) => {
@@ -30,14 +30,6 @@ const RenderRouter: React.FC = () => {
         <ScannerHeader></ScannerHeader>
         <ScannerRouterComponent></ScannerRouterComponent>
       </div>
-      <div className="footer">
-        <p>
-          Made with ❤️ by the SubQuery Community -{' '}
-          <a href="https://github.com/HuberTRoy/subquery-sqtscan" target="_blank" rel="noreferrer">
-            Contribute on GitHub
-          </a>
-        </p>
-      </div>
     </BrowserRouter>
   );
 };
@@ -47,6 +39,14 @@ export const App: React.FC = () => {
     <Providers>
       <div className="App">
         <RenderRouter />
+        <div className="footer">
+          <p>
+            Made with ❤️ by the SubQuery Community -{' '}
+            <a href="https://github.com/HuberTRoy/subquery-sqtscan" target="_blank" rel="noreferrer">
+              Contribute on GitHub
+            </a>
+          </p>
+        </div>
       </div>
     </Providers>
   );
