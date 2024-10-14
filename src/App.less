@@ -33,11 +33,15 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  padding: 1rem 0;
+  padding: 1rem 1.25rem;
 
   p,
   a {
     color: white;
+  }
+
+  p {
+    text-align: center;
   }
 
   a {
@@ -47,4 +51,15 @@
 
 p {
   margin-bottom: 0;
+}
+
+.subql-mobile-header__menu--dark {
+   .ant-drawer-header {
+    background-color: var(--dark-mode-card);
+    color: #fff;
+   }
+
+   .ant-drawer-body { 
+    background-color: var(--dark-mode-background);
+   }
 }
