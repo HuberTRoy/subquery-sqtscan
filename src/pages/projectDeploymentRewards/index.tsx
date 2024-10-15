@@ -2,6 +2,7 @@ import React, { FC, useEffect, useMemo, useState } from 'react';
 import { IoSearch } from 'react-icons/io5';
 import { useNavigate } from 'react-router';
 import { DeploymentMeta } from '@components/DeploymentInfo';
+import IndexerRewards from '@components/IndexerRewards';
 import { useConsumerHostServices } from '@hooks/useConsumerHostServices';
 import { useEra } from '@hooks/useEra';
 import { useGetAllDeployment } from '@hooks/useGetAllDeployment';
