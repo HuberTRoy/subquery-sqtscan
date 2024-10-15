@@ -159,7 +159,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
 
         <div className={styles.dashboard} style={{ padding: '0px', paddingBottom: '24px' }}>
           <div className={styles.dashboardInner}>
-            <IndexerRewards era={selectEra} indexerId={searchNodeOperator} />
+             <IndexerRewards era={selectEra} indexerId={searchNodeOperator} />
           </div>
         </div>
 
