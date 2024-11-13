@@ -33,7 +33,7 @@ export const OperatorRewardsLineChart = (props: {
 
   const rewardsLineXScales = useMemo(() => {
     const getXScales = (period: number, filterVal: FilterType) => {
-      const getDefaultScales = xAxisScalesFunc(period);
+      const getDefaultScales = xAxisScalesFunc(period, currentEra.data?.estEndTime);
 
       const result = getDefaultScales[filterVal.date]();
       return result.slice(0, result.length - 1);
