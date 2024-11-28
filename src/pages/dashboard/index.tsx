@@ -239,7 +239,7 @@ const ScannerDashboard: FC<IProps> = (props) => {
           }}
           dataSource={renderData}
           pagination={false}
-          scroll={{ x: 'max-content' }}
+          scroll={{ x: '1300' }}
         ></Table>
       </div>
     </div>

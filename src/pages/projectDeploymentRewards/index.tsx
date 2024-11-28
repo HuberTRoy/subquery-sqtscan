@@ -19,7 +19,7 @@ import styles from './index.module.less';
 
 interface IProps {}
 
-const ScannerDashboard: FC<IProps> = (props) => {
+const ScannerDashboard: FC<IProps> = () => {
   const { currentEra } = useEra();
   const navigate = useNavigate();
   const { getStatisticQueries } = useConsumerHostServices({
@@ -240,29 +240,34 @@ const ScannerDashboard: FC<IProps> = (props) => {
             ]}
             onChange={(val) => {
               setStatisticGroup(val.target.value);
+              if (val.target.value === 'projectedRewards') {
+                setSelectEra((currentEra.data?.index ?? 1) - 1);
+              }
             }}
             value={statisticGroup}
             optionType="button"
             buttonStyle="solid"
           />
-          <Select
-            className="darkSelector"
-            style={{ width: 200 }}
-            value={selectEra}
-            //Add options to select previous eras
-            //Order: Current Era, Previous Era 1, Previous Era 2, ...
-            options={[
-              { label: `Current Era ${currentEra.data?.index}`, value: currentEra.data?.index },
-              ...new Array(currentEra.data?.index || 0).fill(0).map((_, index, arr) => ({
-                label: `Previous Era ${arr.length - 1 - index}`,
-                value: arr.length - 1 - index,
-              })),
-            ]}
-            onChange={(value) => {
-              setSelectEra(value);
-            }}
-            loading={currentEra.loading}
-          ></Select>
+          {statisticGroup === 'averageRewards' && (
+            <Select
+              className="darkSelector"
+              style={{ width: 200 }}
+              value={selectEra}
+              //Add options to select previous eras
+              //Order: Current Era, Previous Era 1, Previous Era 2, ...
+              options={[
+                { label: `Current Era ${currentEra.data?.index}`, value: currentEra.data?.index },
+                ...new Array(currentEra.data?.index || 0).fill(0).map((_, index, arr) => ({
+                  label: `Previous Era ${arr.length - 1 - index}`,
+                  value: arr.length - 1 - index,
+                })),
+              ]}
+              onChange={(value) => {
+                setSelectEra(value);
+              }}
+              loading={currentEra.loading}
+            ></Select>
+          )}
           <Input
             className="darkInput"
             style={{ width: 342 }}
@@ -288,7 +293,8 @@ const ScannerDashboard: FC<IProps> = (props) => {
             <div className="col-flex" style={{ justifyContent: 'space-between' }}>
               <Typography>Projected Rewards Calculator</Typography>
               <Typography variant="small">
-                This provides your estimated rewards based on historic data of the selected Era.
+                This provides an estimate of potential rewards based on historic data of the previous Era. Conditions
+                change between Eras, this estimate is not a guarantee for future Eras.
               </Typography>
             </div>
 
